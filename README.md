@@ -45,7 +45,7 @@ W `index.html` szukaj komentarzy `TODO` – tekst „O mnie”, pakiety i ceny, 
 ## Krok 4 – rezerwacje przez Kalendarz Google
 > **Test na własnym koncie:** zrób wszystko poniżej na swoim koncie Google i wklej swój link.
 > Rezerwacje testowe trafią do Twojego kalendarza. Gdy wszystko działa, Ewelina tworzy taki sam
-> harmonogram u siebie, a Ty podmieniasz tylko `bookingUrl` w `js/config.js`. Nic więcej się nie zmienia.
+> harmonogram u siebie, a Ty podmieniasz tylko linki w `booking` w `js/config.js`. Nic więcej się nie zmienia.
 
 1. Wejdź na https://calendar.google.com (na komputerze).
 2. **Utwórz → Harmonogram spotkań** (Appointment schedule).
@@ -54,7 +54,13 @@ W `index.html` szukaj komentarzy `TODO` – tekst „O mnie”, pakiety i ceny, 
    Kalendarz automatycznie ukrywa godziny, w których Ewelina ma już coś w kalendarzu.
 4. Zapisz → kliknij harmonogram → **Udostępnij** → **Umieszczenie na stronie (Website embed)** → **Wbudowany harmonogram (Inline)**.
 5. Z kodu `<iframe src="...">` skopiuj sam adres (zaczyna się od `https://calendar.google.com/calendar/appointments/schedules/...`)
-   i wklej do `js/config.js` w pole `bookingUrl`.
+   i wklej do `js/config.js` w tablicę `booking` (pole `url` przy odpowiednim pakiecie).
+   Link skrócony z „Udostępnij” (`https://calendar.app.google/...`) też zadziała.
+
+**Różne długości sesji (S 30 / M 50 / L 90 min):** jeden harmonogram Google = jedna długość spotkania,
+więc tworzysz 3 harmonogramy (np. „Sesja S – 30 min”, „Sesja M – 50 min”, „Sesja L – 90 min”) z tymi samymi godzinami
+dostępności. Każdy sprawdza ten sam kalendarz, więc rezerwacja w jednym blokuje termin w pozostałych.
+Na stronie klient przełącza pakiet zakładkami nad kalendarzem.
 
 Każda rezerwacja pojawia się od razu w Kalendarzu Google Eweliny, a klient dostaje maila z potwierdzeniem.
 (W darmowym koncie Google jest jeden podstawowy harmonogram – w zupełności wystarczy. Wersja płatna

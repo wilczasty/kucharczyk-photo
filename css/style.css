@@ -264,6 +264,8 @@ h3 { font-size: 1.6rem; }
   overflow: hidden; max-width: 960px; margin: 0 auto;
 }
 .booking__frame iframe { width: 100%; height: 720px; border: 0; display: block; }
+.booking__tabs { margin-bottom: 1.5rem; }
+.booking__tabs button { font-size: .9rem; }
 .booking__placeholder { padding: 3rem 2rem; text-align: center; }
 .booking__placeholder code { background: var(--linen); padding: .15rem .4rem; border-radius: 3px; font-size: .9em; }
 

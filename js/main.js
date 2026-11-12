@@ -117,17 +117,43 @@
 
   /* ---------- rezerwacja: Kalendarz Google ---------- */
   const booking = $("#booking");
-  if (cfg.bookingUrl) {
+  const tabs = $("#booking-tabs");
+  const toEmbed = url => {
+    // link z "Udostępnij" (calendar.app.google/...) też działa; pełny link dostaje ?gv=true (wersja do osadzenia)
+    if (/\/appointments\/schedules\//.test(url) && !/[?&]gv=true/.test(url)) url += (url.includes("?") ? "&" : "?") + "gv=true";
+    return url;
+  };
+  const slots = (cfg.booking || (cfg.bookingUrl ? [{ label: "", url: cfg.bookingUrl }] : [])).filter(b => b.url);
+  const showBooking = i => {
+    booking.innerHTML = "";
     const iframe = document.createElement("iframe");
-    iframe.src = cfg.bookingUrl;
-    iframe.title = "Rezerwacja terminu sesji";
+    iframe.src = toEmbed(slots[i].url);
+    iframe.title = `Rezerwacja terminu sesji ${slots[i].label}`.trim();
     iframe.loading = "lazy";
     booking.appendChild(iframe);
+    tabs.querySelectorAll("button").forEach((b, j) => {
+      b.classList.toggle("is-active", j === i);
+      b.setAttribute("aria-selected", j === i);
+    });
+  };
+  if (slots.length) {
+    if (slots.length > 1) {
+      slots.forEach((sl, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = sl.label;
+        b.setAttribute("role", "tab");
+        b.addEventListener("click", () => showBooking(i));
+        tabs.appendChild(b);
+      });
+    } else tabs.hidden = true;
+    showBooking(0);
   } else {
+    tabs.hidden = true;
     booking.innerHTML = `
       <div class="booking__placeholder">
         <p class="script">tu pojawi się kalendarz</p>
-        <p>Wklej link do strony rezerwacji z Kalendarza Google w pliku <code>js/config.js</code> (pole <code>bookingUrl</code>).</p>
+        <p>Wklej link do strony rezerwacji z Kalendarza Google w pliku <code>js/config.js</code> (pole <code>booking</code>).</p>
       </div>`;
   }
 
