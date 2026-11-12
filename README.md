@@ -66,7 +66,10 @@ Każda rezerwacja pojawia się od razu w Kalendarzu Google Eweliny, a klient dos
 (W darmowym koncie Google jest jeden podstawowy harmonogram – w zupełności wystarczy. Wersja płatna
 dodaje m.in. przypomnienia mailowe i płatności online.)
 
-**Alternatywa:** https://cal.com (plan darmowy) – też łączy się z Kalendarzem Google, daje kilka typów sesji.
+**Używane teraz: cal.com** (plan darmowy) – łączy się z Kalendarzem Google, a klient w jednym kalendarzu
+sam wybiera długość sesji (30 / 50 / 90 min). Ustawienie: Event Types → typ sesji → Duration → „Allow multiple durations”.
+Na stronie: `js/config.js` → `calLink` (końcówka linku po `https://cal.com/`). Gdy `calLink` jest puste,
+strona pokazuje harmonogram(y) Google z pola `booking`.
 
 ## Krok 5 – formularz kontaktowy (Web3Forms)
 1. Wejdź na https://web3forms.com → wpisz e-mail Eweliny → „Create Access Key”.

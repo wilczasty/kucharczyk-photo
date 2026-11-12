@@ -136,7 +136,15 @@
       b.setAttribute("aria-selected", j === i);
     });
   };
-  if (slots.length) {
+  if (cfg.calLink) {
+    // oficjalny widżet cal.com (sam dopasowuje wysokość)
+    tabs.hidden = true;
+    booking.classList.add("booking__frame--cal");
+    (function (C, A, L) { const p = (a, ar) => a.q.push(ar); const d = C.document; C.Cal = C.Cal || function () { const cal = C.Cal; const ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const ns = ar[1]; api.q = api.q || []; if (typeof ns === "string") { cal.ns[ns] = cal.ns[ns] || api; p(cal.ns[ns], ar); p(cal, ["initNamespace", ns]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+    Cal("init", "sesja", { origin: "https://cal.com" });
+    Cal.ns.sesja("inline", { elementOrSelector: "#booking", calLink: cfg.calLink, config: { layout: "month_view", theme: "light" } });
+    Cal.ns.sesja("ui", { theme: "light", layout: "month_view", hideEventTypeDetails: false, cssVarsPerTheme: { light: { "cal-brand": "#7d5536" } } });
+  } else if (slots.length) {
     if (slots.length > 1) {
       slots.forEach((sl, i) => {
         const b = document.createElement("button");

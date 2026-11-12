@@ -3,7 +3,11 @@
    Nie trzeba ruszać żadnych innych plików JS.
    ========================================================= */
 window.SITE_CONFIG = {
-  // Rezerwacje z Kalendarza Google ("Harmonogram spotkań") – osobny harmonogram na każdy pakiet,
+  // Rezerwacje przez cal.com (połączone z Kalendarzem Google) – klient sam wybiera 30 / 50 / 90 min.
+  // Wpisz końcówkę linku po "https://cal.com/". Gdy puste – używany jest Kalendarz Google z pola "booking" niżej.
+  calLink: "rutko23-o2.pl-2igpgd/30min",
+
+  // (Alternatywa) Rezerwacje z Kalendarza Google ("Harmonogram spotkań") – osobny harmonogram na każdy pakiet,
   // bo jeden harmonogram Google ma jedną długość spotkania.
   // Jak zdobyć link – patrz README.md, krok 4. Wystarczy też link skrócony (https://calendar.app.google/...).
   // Puste "url" = ten pakiet się nie wyświetla. Jeśli tylko jeden ma link – zakładki się chowają.
