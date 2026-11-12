@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ewelina Kucharczyk · Fotografia</title>
+  <meta name="description" content="Ewelina Kucharczyk – fotografia rodzinna, plenerowa i okolicznościowa. Naturalne, ciepłe zdjęcia pełne emocji. Sprawdź ofertę i zarezerwuj sesję.">
+  <meta property="og:title" content="Ewelina Kucharczyk · Fotografia">
+  <meta property="og:description" content="Naturalne, ciepłe zdjęcia pełne emocji. Zarezerwuj sesję online.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23a47551'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='28' fill='%23faf6ef' text-anchor='middle'%3EEK%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ NAWIGACJA ============ -->
+<header class="nav" id="nav">
+  <a href="#start" class="nav__logo">
+    <span class="nav__name">Ewelina Kucharczyk</span>
+    <span class="nav__script">fotografia</span>
+  </a>
+  <button class="nav__toggle" aria-label="Menu" aria-expanded="false" aria-controls="menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="nav__menu" id="menu">
+    <a href="#o-mnie">O mnie</a>
+    <a href="#portfolio">Portfolio</a>
+    <a href="#oferta">Oferta</a>
+    <a href="#rezerwacja">Rezerwacja</a>
+    <a href="#kontakt">Kontakt</a>
+    <span class="nav__social social-icons" data-social></span>
+  </nav>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="start">
+  <div class="hero__bg" style="background-image:url('images/portfolio/konie-plener-1.jpg')"></div>
+  <div class="hero__content">
+    <p class="script">zatrzymane chwile</p>
+    <h1>Ewelina Kucharczyk</h1>
+    <p class="hero__lead">Portrety, sesje rodzinne i kobiece, konie, wesela i reportaże z wydarzeń.<br>Gmina Kolbudy · Trójmiasto i okolice</p>
+    <div class="hero__cta">
+      <a href="#rezerwacja" class="btn btn--light">Zarezerwuj sesję</a>
+      <a href="#portfolio" class="btn btn--ghost">Zobacz portfolio</a>
+    </div>
+  </div>
+  <a href="#o-mnie" class="hero__scroll" aria-label="Przewiń w dół"></a>
+</section>
+
+<!-- ============ O MNIE ============ -->
+<section class="section about" id="o-mnie">
+  <div class="container about__grid">
+    <figure class="about__photo reveal">
+      <!-- TODO: podmień na portret Eweliny (np. images/ewelina.jpg) -->
+      <img src="images/o-mnie.jpg" alt="Ewelina Kucharczyk przy pracy" loading="lazy">
+      <figcaption class="script">to ja!</figcaption>
+    </figure>
+    <div class="about__text reveal">
+      <p class="eyebrow">O mnie</p>
+      <h2>Cześć, jestem Ewelina</h2>
+      <!-- TODO: podmień na prawdziwy tekst od Eweliny -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
+      <p>Cras mattis consectetur purus sit amet fermentum. Donec ullamcorper nulla non metus auctor fringilla. Maecenas faucibus mollis interdum, nullam quis risus eget urna mollis ornare vel eu leo.</p>
+      <ul class="about__facts">
+        <!-- TODO: prawdziwe liczby -->
+        <li><strong>00+</strong><span>lat z aparatem</span></li>
+        <li><strong>000+</strong><span>sesji</span></li>
+        <li><strong>∞</strong><span>uśmiechów</span></li>
+      </ul>
+      <img class="about__sprig" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40' fill='none' stroke='%236b6b47' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M4 30 C40 26 80 20 116 8'/%3E%3Cpath d='M30 27c-2-8 4-14 10-15-1 7-5 12-10 15z'/%3E%3Cpath d='M30 27c6 2 12 0 15-4-6-1-11 0-15 4z'/%3E%3Cpath d='M60 21c-1-8 5-13 11-14-1 7-6 11-11 14z'/%3E%3Cpath d='M60 21c6 2 12 1 15-3-6-1-11-1-15 3z'/%3E%3Cpath d='M90 14c0-7 6-11 11-12-1 6-6 10-11 12z'/%3E%3C/svg%3E" alt="" aria-hidden="true">
+    </div>
+  </div>
+</section>
+
+<!-- ============ PORTFOLIO ============ -->
+<section class="section section--linen portfolio" id="portfolio">
+  <div class="container">
+    <header class="section__head reveal">
+      <p class="eyebrow">Portfolio</p>
+      <h2>Wybrane kadry</h2>
+      <p class="section__sub">Kilka historii, które miałam przyjemność opowiedzieć.</p>
+    </header>
+    <div class="filters" role="tablist" id="filters"></div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</section>
+
+<!-- ============ OFERTA / CENNIK ============ -->
+<section class="section offer" id="oferta">
+  <div class="container">
+    <header class="section__head reveal">
+      <p class="eyebrow">Oferta</p>
+      <h2>Sesje i cennik</h2>
+      <p class="section__sub">Trzy pakiety do wyboru – do każdego możesz dobrać dodatkowe zdjęcia.</p>
+    </header>
+
+    <ul class="session-types reveal">
+      <li>sesje miejskie</li>
+      <li>zdjęcia profilowe</li>
+      <li>portrety i akty</li>
+      <li>sesje z końmi</li>
+      <li>sesje panieńskie</li>
+      <li>sesje rodzinne i dziecięce</li>
+    </ul>
+
+    <div class="cards">
+      <article class="card reveal">
+        <p class="card__size">S</p>
+        <h3>Sesja krótka</h3>
+        <p class="card__price">360 zł</p>
+        <ul>
+          <li>30 minut sesji</li>
+          <li>6 obrobionych zdjęć</li>
+          <li>dodatkowe zdjęcie – 50 zł</li>
+        </ul>
+        <a href="#rezerwacja" class="btn btn--outline">Rezerwuję</a>
+      </article>
+
+      <article class="card card--featured reveal">
+        <span class="card__badge script">najczęściej wybierana</span>
+        <p class="card__size">M</p>
+        <h3>Sesja standard</h3>
+        <p class="card__price">490 zł</p>
+        <ul>
+          <li>50 minut sesji</li>
+          <li>12 obrobionych zdjęć</li>
+          <li>dodatkowe zdjęcie – 45 zł</li>
+        </ul>
+        <a href="#rezerwacja" class="btn btn--light">Rezerwuję</a>
+      </article>
+
+      <article class="card reveal">
+        <p class="card__size">L</p>
+        <h3>Sesja rozszerzona</h3>
+        <p class="card__price">900 zł</p>
+        <ul>
+          <li>90 minut sesji</li>
+          <li>30 obrobionych zdjęć</li>
+          <li>dodatkowe zdjęcie – 30 zł</li>
+        </ul>
+        <a href="#rezerwacja" class="btn btn--outline">Rezerwuję</a>
+      </article>
+    </div>
+
+    <div class="custom-offer reveal">
+      <h3>Wesela i wydarzenia</h3>
+      <p>Reportaże ślubne, wydarzenia sportowe i kulturalne (wyścigi konne, wystawy psów, Runmageddon), reportaże firmowe – <strong>wycena indywidualna</strong>.</p>
+      <a href="#kontakt" class="btn btn--outline">Zapytaj o termin</a>
+    </div>
+
+    <div class="faq reveal">
+      <h3>Częste pytania</h3>
+      <details>
+        <summary>Kiedy dostanę zdjęcia?</summary>
+        <p>Zwykle w ciągu 14 dni od sesji, w przypadku reportaży do 6 tygodni. Zdjęcia otrzymujesz w prywatnej galerii online.</p>
+      </details>
+      <details>
+        <summary>Co, jeśli w dniu sesji będzie padać?</summary>
+        <p>Spokojnie – przekładamy sesję na inny dogodny termin, bez dodatkowych kosztów.</p>
+      </details>
+      <details>
+        <summary>Czy muszę wpłacić zadatek?</summary>
+        <p>Tak, termin potwierdzam po wpłacie zadatku. Szczegóły prześlę mailowo po rezerwacji.</p>
+      </details>
+      <details>
+        <summary>Czy dojeżdżasz na sesje?</summary>
+        <p>Tak! Na terenie gminy Kolbudy i Trójmiasta dojazd jest wliczony w cenę, dalsze wyjazdy wyceniam indywidualnie.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REZERWACJA (Google Calendar) ============ -->
+<section class="section section--kraft booking" id="rezerwacja">
+  <div class="container">
+    <header class="section__head reveal">
+      <p class="eyebrow">Rezerwacja</p>
+      <h2>Wybierz termin</h2>
+      <p class="section__sub">Kliknij wolny termin w kalendarzu – potwierdzenie przyjdzie na Twojego maila, a ja odezwę się z dalszymi szczegółami.</p>
+    </header>
+    <ol class="steps reveal">
+      <li><span>1</span>Wybierz dzień i godzinę</li>
+      <li><span>2</span>Podaj dane i rodzaj sesji</li>
+      <li><span>3</span>Ustalamy szczegóły i miejsce</li>
+    </ol>
+    <div class="booking__frame reveal" id="booking"></div>
+  </div>
+</section>
+
+<!-- ============ KONTAKT ============ -->
+<section class="section contact" id="kontakt">
+  <div class="container contact__grid">
+    <div class="contact__info reveal">
+      <p class="eyebrow">Kontakt</p>
+      <h2>Porozmawiajmy</h2>
+      <p>Masz pytanie, pomysł na sesję albo szukasz fotografa na wyjątkowy dzień? Napisz – odpowiadam zwykle w ciągu 24 godzin.</p>
+      <ul class="contact__list" id="contact-list"></ul>
+      <div class="contact__social social-icons social-icons--labels" data-social></div>
+    </div>
+
+    <form class="form reveal" id="contact-form" novalidate>
+      <div class="form__row">
+        <label>Imię<input type="text" name="name" required autocomplete="name"></label>
+        <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
+      </div>
+      <label>Rodzaj sesji
+        <select name="session_type">
+          <option>Sesja S (30 min)</option>
+          <option selected>Sesja M (50 min)</option>
+          <option>Sesja L (90 min)</option>
+          <option>Wesele</option>
+          <option>Wydarzenie / reportaż</option>
+          <option>Inne</option>
+        </select>
+      </label>
+      <label>Wiadomość<textarea name="message" rows="5" required></textarea></label>
+      <label class="form__check">
+        <input type="checkbox" name="rodo" required>
+        <span>Wyrażam zgodę na przetwarzanie moich danych w celu odpowiedzi na wiadomość (<a href="polityka-prywatnosci.html" target="_blank">polityka prywatności</a>).</span>
+      </label>
+      <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" autocomplete="off">
+      <button type="submit" class="btn">Wyślij wiadomość</button>
+      <p class="form__status" id="form-status" role="status"></p>
+    </form>
+  </div>
+</section>
+
+<footer class="footer">
+  <p class="script">dziękuję, że jesteś</p>
+  <div class="footer__social social-icons" data-social></div>
+  <p class="footer__copy">© <span id="year"></span> Ewelina Kucharczyk Fotografia · Wszystkie zdjęcia chronione prawem autorskim</p>
+</footer>
+
+<!-- ============ LIGHTBOX ============ -->
+<div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Podgląd zdjęcia">
+  <button class="lightbox__close" aria-label="Zamknij">×</button>
+  <button class="lightbox__nav lightbox__prev" aria-label="Poprzednie">‹</button>
+  <img alt="">
+  <button class="lightbox__nav lightbox__next" aria-label="Następne">›</button>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/portfolio.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
