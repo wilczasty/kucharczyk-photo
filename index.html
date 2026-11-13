@@ -183,6 +183,7 @@
       <p class="section__sub">Warsztaty, plenery i mini-sesje – liczba miejsc ograniczona.</p>
     </header>
     <div class="events__list" id="events-list"></div>
+    <p class="events__newsletter reveal">Nie chcesz przegapić kolejnych warsztatów? <a href="#newsletter">Zapisz się na newsletter</a>.</p>
   </div>
 </section>
 
@@ -241,6 +242,84 @@
     </form>
   </div>
 </section>
+
+<!-- ============ NEWSLETTER (MailerLite) ============
+     Klasy ml-* i nazwy pól są potrzebne skryptowi MailerLite – nie zmieniaj ich.
+     Wygląd: css/style.css → sekcja „newsletter”. -->
+<section class="section newsletter" id="newsletter">
+  <div class="container">
+    <div id="mlb2-48507516" class="ml-form-embedContainer ml-subscribe-form ml-subscribe-form-48507516 newsletter__card reveal">
+      <div class="ml-form-embedWrapper embedForm">
+        <div class="ml-form-embedBody ml-form-embedBodyDefault row-form">
+          <div class="ml-form-embedContent">
+            <p class="eyebrow">Newsletter</p>
+            <h2>Bądźmy w kontakcie</h2>
+            <p class="newsletter__lead">Raz na jakiś czas napiszę o wolnych terminach, warsztatach i nowych sesjach. Bez spamu, obiecuję.</p>
+          </div>
+
+          <form class="ml-block-form" action="https://assets.mailerlite.com/jsonp/2792924/forms/204026154199287504/subscribe" data-code="" method="post" target="_blank">
+            <div class="ml-form-formContent newsletter__fields">
+              <div class="ml-form-fieldRow">
+                <div class="ml-field-group ml-field-name">
+                  <label for="nl-name">Imię</label>
+                  <input id="nl-name" type="text" class="form-control" name="fields[name]" placeholder="Twoje imię" autocomplete="given-name">
+                </div>
+              </div>
+              <div class="ml-form-fieldRow ml-last-item">
+                <div class="ml-field-group ml-field-email ml-validate-email ml-validate-required">
+                  <label for="nl-email">E-mail</label>
+                  <input id="nl-email" type="email" class="form-control" name="fields[email]" placeholder="Twój e-mail" autocomplete="email" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="ml-form-embedPermissions">
+              <div class="ml-form-embedPermissionsOptionsCheckbox">
+                <label class="newsletter__check">
+                  <!-- value="Email" musi zgadzać się z nazwą zgody w MailerLite -->
+                  <input type="checkbox" name="gdpr[]" value="Email" required>
+                  <span>Chcę otrzymywać newsletter. Twoje imię i e-mail wykorzystam wyłącznie do jego wysyłki.</span>
+                </label>
+              </div>
+              <p class="newsletter__small">Możesz wypisać się w każdej chwili, klikając link w stopce wiadomości. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank">polityce prywatności</a>.</p>
+            </div>
+
+            <div class="ml-form-recaptcha ml-validate-required">
+              <script src="https://www.google.com/recaptcha/api.js?hl=pl" async defer></script>
+              <div class="g-recaptcha" data-sitekey="6Lf1KHQUAAAAAFNKEX1hdSWCS3mRMv4FlFaNslaD"></div>
+            </div>
+
+            <input type="hidden" name="ml-submit" value="1">
+            <div class="ml-form-embedSubmit">
+              <button type="submit" class="btn primary">Zapisuję się</button>
+              <button disabled="disabled" style="display: none;" type="button" class="btn loading">
+                <span class="ml-form-embedSubmitLoad"></span><span class="sr-only">Wysyłanie…</span>
+              </button>
+            </div>
+            <input type="hidden" name="anticsrf" value="true">
+          </form>
+        </div>
+
+        <div class="ml-form-successBody row-success" style="display: none">
+          <div class="ml-form-successContent">
+            <p class="script newsletter__thanks">dziękuję!</p>
+            <h2>Jeszcze jeden krok</h2>
+            <p class="newsletter__lead">Sprawdź skrzynkę i kliknij link w wiadomości ode mnie, żeby potwierdzić zapis. Jeśli jej nie widzisz, zajrzyj do spamu lub zakładki „Oferty”.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  function ml_webform_success_48507516() {
+    var $ = ml_jQuery || jQuery;
+    $('.ml-subscribe-form-48507516 .row-success').show();
+    $('.ml-subscribe-form-48507516 .row-form').hide();
+  }
+</script>
+<script src="https://groot.mailerlite.com/js/w/webforms.min.js?v83147fa8ce2d95cb73ece7f28b469519" defer></script>
+<script>fetch("https://assets.mailerlite.com/jsonp/2792924/forms/204026154199287504/takel").catch(() => {});</script>
 
 <footer class="footer">
   <p class="script">dziękuję, że jesteś</p>
