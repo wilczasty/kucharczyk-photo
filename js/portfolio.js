@@ -50,4 +50,6 @@ window.PORTFOLIO = [
   { src: P("rodzinne-swieta-3"),      category: "rodzinne",   caption: "Rozpakowywanie" },
   { src: P("rodzinne-swieta-4"),      category: "rodzinne",   caption: "Ubieranie choinki" },
   { src: P("konie-stajnia"),          category: "portrety",   caption: "W stajni" },
+  // TODO: placeholder – podmienić na prawdziwe zdjęcia z szklarni
+  { src: P("szklarnia-placeholder"),  category: "szklarnia",  caption: "Szklarnia – zdjęcia już wkrótce" },
 ];
