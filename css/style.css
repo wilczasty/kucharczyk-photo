@@ -332,3 +332,34 @@ h3 { font-size: 1.6rem; }
 .nav__social { margin-left: .5rem; }
 .footer__social { justify-content: center; gap: 1.2rem; margin: 1.2rem 0; color: var(--paper); }
 .footer__social svg { width: 26px; height: 26px; }
+
+/* ---------- wydarzenia ---------- */
+[hidden] { display: none !important; }
+.events__list { display: grid; gap: 2rem; max-width: 1040px; margin: 0 auto; }
+.event {
+  display: grid; grid-template-columns: 1.1fr 1fr; background: var(--paper);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.event__img { position: relative; min-height: 320px; background: var(--kraft); }
+.event__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.event__body { position: relative; padding: clamp(1.8rem, 4vw, 3rem); }
+.event__date {
+  position: absolute; top: -1px; right: 2rem; margin: 0; padding: .6rem .9rem 1rem;
+  background: var(--forest); color: var(--paper); text-align: center; line-height: 1;
+  font: 400 .78rem var(--sans); letter-spacing: .15em; text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
+}
+.event__date b { display: block; font: 500 2rem var(--serif); letter-spacing: 0; margin-bottom: .2rem; }
+.event h3 { font-family: var(--serif); font-weight: 500; font-size: clamp(1.7rem, 3vw, 2.2rem); line-height: 1.15; margin: 0 5rem 1rem 0; }
+.event__desc { color: var(--muted); margin: 0 0 1.4rem; }
+.event__meta { list-style: none; padding: 0; margin: 0 0 1.8rem; }
+.event__meta li { display: flex; gap: 1rem; padding: .45rem 0; border-bottom: 1px dashed var(--line); }
+.event__meta li:last-child { border: 0; }
+.event__meta span { flex: 0 0 5.5rem; font-size: .75rem; letter-spacing: .15em; text-transform: uppercase; color: var(--wood); padding-top: .2rem; }
+.event__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.6rem; }
+.event__cal { font-family: var(--script); font-size: 1.35rem; color: var(--wood-dark); text-decoration: none; }
+.event__cal:hover { color: var(--wood); }
+@media (max-width: 820px) {
+  .event { grid-template-columns: 1fr; }
+  .event__img { min-height: 0; aspect-ratio: 16 / 10; }
+}

@@ -18,6 +18,7 @@ polityka-prywatnosci.html   – RODO (uzupełnij dane!)
 css/style.css               – wygląd (kolory na górze pliku, sekcja :root)
 js/config.js                – ⭐ TWOJE USTAWIENIA: e-mail, telefon, link do kalendarza, klucz formularza
 js/portfolio.js             – ⭐ lista zdjęć w galerii
+js/wydarzenia.js            – ⭐ wydarzenia / warsztaty (sekcja chowa się, gdy nie ma nadchodzących)
 js/main.js                  – logika (nie trzeba ruszać)
 images/o-mnie.jpg           – zdjęcie do sekcji „O mnie” (docelowo portret Eweliny)
 images/dodatkowe/           – zdjęcia nieużyte na stronie
@@ -70,6 +71,14 @@ dodaje m.in. przypomnienia mailowe i płatności online.)
 sam wybiera długość sesji (30 / 50 / 90 min). Ustawienie: Event Types → typ sesji → Duration → „Allow multiple durations”.
 Na stronie: `js/config.js` → `calLink` (końcówka linku po `https://cal.com/`). Gdy `calLink` jest puste,
 strona pokazuje harmonogram(y) Google z pola `booking`.
+
+## Wydarzenia (warsztaty, plenery, mini-sesje)
+1. Grafikę wrzuć do `images/wydarzenia/` (jpg ~1600 px szerokości).
+2. W `js/wydarzenia.js` dopisz wpis (data, godziny, tytuł, opis, miejsce, cena, liczba miejsc, zdjęcie).
+3. Minione wydarzenia znikają same. Gdy nie ma żadnego nadchodzącego, znika też sekcja i link w menu.
+4. Zapisy: pole `zapisy` = link (np. typ wydarzenia w cal.com z włączonymi „Seats” – limit miejsc).
+   Puste pole = przycisk „Zapisz się” przewija do formularza kontaktowego z gotową wiadomością.
+5. Zaproszenie do subskrybentów: kampania w newsletterze (np. MailerLite) z linkiem `…/#wydarzenia`.
 
 ## Krok 5 – formularz kontaktowy (Web3Forms)
 1. Wejdź na https://web3forms.com → wpisz e-mail Eweliny → „Create Access Key”.

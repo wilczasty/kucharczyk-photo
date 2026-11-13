@@ -115,6 +115,63 @@
     touchX = null;
   });
 
+  /* ---------- wydarzenia ---------- */
+  const evSection = $("#wydarzenia");
+  const evList = $("#events-list");
+  const MIES = ["stycznia","lutego","marca","kwietnia","maja","czerwca","lipca","sierpnia","września","października","listopada","grudnia"];
+  const MIES_KR = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
+  const DNI = ["niedziela","poniedziałek","wtorek","środa","czwartek","piątek","sobota"];
+  const esc = t => String(t ?? "").replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const upcoming = (window.WYDARZENIA || [])
+    .map(e => ({ ...e, d: new Date(e.data + "T00:00:00") }))
+    .filter(e => !isNaN(e.d) && e.d >= today)
+    .sort((a, b) => a.d - b.d);
+  const gcalLink = e => {
+    const ymd = e.data.replace(/-/g, "");
+    const t = h => h ? h.replace(":", "") + "00" : "";
+    const dates = e.od ? `${ymd}T${t(e.od)}/${ymd}T${t(e.do || e.od)}` : `${ymd}/${ymd}`;
+    const q = new URLSearchParams({ action: "TEMPLATE", text: e.tytul, dates, details: e.opis || "", location: e.miejsce || "", ctz: "Europe/Warsaw" });
+    return `https://calendar.google.com/calendar/render?${q}`;
+  };
+  if (upcoming.length) {
+    evSection.hidden = false;
+    document.querySelectorAll("[data-events-link]").forEach(a => (a.hidden = false));
+    upcoming.forEach((e, i) => {
+      const dzien = `${DNI[e.d.getDay()]}, ${e.d.getDate()} ${MIES[e.d.getMonth()]} ${e.d.getFullYear()}`;
+      const godz = e.od ? ` · ${e.od}${e.do ? "–" + e.do : ""}` : "";
+      const meta = [
+        ["Kiedy", dzien + godz], ["Gdzie", e.miejsce], ["Cena", e.cena], ["Miejsca", e.miejsca],
+      ].filter(([, v]) => v).map(([k, v]) => `<li><span>${k}</span>${esc(v)}</li>`).join("");
+      evList.insertAdjacentHTML("beforeend", `
+        <article class="event reveal">
+          ${e.zdjecie ? `<div class="event__img"><img src="${esc(e.zdjecie)}" alt="${esc(e.tytul)}" loading="lazy"></div>` : ""}
+          <div class="event__body">
+            <p class="event__date"><b>${e.d.getDate()}</b>${MIES_KR[e.d.getMonth()]}</p>
+            <h3>${esc(e.tytul)}</h3>
+            ${e.opis ? `<p class="event__desc">${esc(e.opis)}</p>` : ""}
+            <ul class="event__meta">${meta}</ul>
+            <div class="event__cta">
+              <a class="btn" href="${e.zapisy ? esc(e.zapisy) : "#kontakt"}" ${e.zapisy ? 'target="_blank" rel="noopener"' : `data-signup="${i}"`}>Zapisz się</a>
+              <a class="event__cal" href="${gcalLink(e)}" target="_blank" rel="noopener">+ dodaj do kalendarza</a>
+            </div>
+          </div>
+        </article>`);
+    });
+    evList.querySelectorAll(".reveal").forEach(el => io.observe(el));
+    evList.addEventListener("click", ev => {
+      const a = ev.target.closest("[data-signup]");
+      if (!a) return;
+      const e = upcoming[+a.dataset.signup];
+      const f = $("#contact-form");
+      const sel = f.querySelector('[name="session_type"]');
+      const opt = [...sel.options].find(o => /warsztaty/i.test(o.text));
+      if (opt) sel.value = opt.value;
+      f.querySelector('[name="message"]').value =
+        `Dzień dobry, chcę zapisać się na: ${e.tytul} (${e.d.getDate()} ${MIES[e.d.getMonth()]}).\nLiczba osób: 1\n`;
+    });
+  }
+
   /* ---------- rezerwacja: Kalendarz Google ---------- */
   const booking = $("#booking");
   const tabs = $("#booking-tabs");

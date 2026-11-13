@@ -30,6 +30,7 @@
     <a href="#o-mnie">O mnie</a>
     <a href="#portfolio">Portfolio</a>
     <a href="#oferta">Oferta</a>
+    <a href="#wydarzenia" data-events-link hidden>Wydarzenia</a>
     <a href="#rezerwacja">Rezerwacja</a>
     <a href="#kontakt">Kontakt</a>
     <span class="nav__social social-icons" data-social></span>
@@ -174,7 +175,19 @@
   </div>
 </section>
 
-<!-- ============ REZERWACJA (Google Calendar) ============ -->
+<!-- ============ WYDARZENIA (treść: js/wydarzenia.js) ============ -->
+<section class="section section--linen events" id="wydarzenia" hidden>
+  <div class="container">
+    <header class="section__head reveal">
+      <p class="eyebrow">Wydarzenia</p>
+      <h2>Spotkajmy się</h2>
+      <p class="section__sub">Warsztaty, plenery i mini-sesje – liczba miejsc ograniczona.</p>
+    </header>
+    <div class="events__list" id="events-list"></div>
+  </div>
+</section>
+
+<!-- ============ REZERWACJA (cal.com / Kalendarz Google – js/config.js) ============ -->
 <section class="section section--kraft booking" id="rezerwacja">
   <div class="container">
     <header class="section__head reveal">
@@ -215,6 +228,7 @@
           <option>Sesja L (90 min)</option>
           <option>Wesele</option>
           <option>Wydarzenie / reportaż</option>
+          <option>Zapis na warsztaty / wydarzenie</option>
           <option>Inne</option>
         </select>
       </label>
@@ -246,6 +260,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/portfolio.js"></script>
+<script src="js/wydarzenia.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
