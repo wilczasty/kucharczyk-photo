@@ -86,10 +86,19 @@ h3 { font-size: 1.6rem; }
   color: var(--paper);
   transition: background .35s, padding .35s, color .35s, box-shadow .35s;
 }
+/* Tło i rozmycie są na ::before, a nie na .nav. backdrop-filter na rodzicu sprawia, że
+   menu mobilne (position: fixed) przycina się do paska zamiast zajmować cały ekran. */
+.nav::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: transparent; transition: background .35s;
+}
 .nav.is-scrolled {
-  background: rgba(250, 246, 239, .95); color: var(--bark);
+  color: var(--bark);
   padding-block: .6rem; box-shadow: 0 1px 0 var(--line);
-  backdrop-filter: blur(6px);
+}
+.nav.is-scrolled::before {
+  background: rgba(250, 246, 239, .95);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 .nav__logo { color: inherit; text-decoration: none; display: flex; flex-direction: column; line-height: 1; }
 .nav__name { font-family: var(--serif); font-size: 1.45rem; font-weight: 500; letter-spacing: .02em; }
