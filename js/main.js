@@ -127,6 +127,7 @@
     .map(e => ({ ...e, d: new Date(e.data + "T00:00:00") }))
     .filter(e => !isNaN(e.d) && e.d >= today)
     .sort((a, b) => a.d - b.d);
+  const KADR = { srodek: 1, gora: 1, dol: 1, cale: 1 };   // pole „Kadrowanie zdjęcia” z panelu
   const gcalLink = e => {
     const ymd = e.data.replace(/-/g, "");
     const t = h => h ? h.replace(":", "") + "00" : "";
@@ -145,7 +146,7 @@
       ].filter(([, v]) => v).map(([k, v]) => `<li><span>${k}</span>${esc(v)}</li>`).join("");
       evList.insertAdjacentHTML("beforeend", `
         <article class="event reveal">
-          ${e.zdjecie ? `<div class="event__img"><img src="${esc(e.zdjecie)}" alt="${esc(e.tytul)}" loading="lazy"></div>` : ""}
+          ${e.zdjecie ? `<div class="event__img event__img--${KADR[e.kadrowanie] ? e.kadrowanie : "srodek"}"><img src="${esc(e.zdjecie)}" alt="${esc(e.tytul)}" loading="lazy"></div>` : ""}
           <div class="event__body">
             <p class="event__date"><b>${e.d.getDate()}</b>${MIES_KR[e.d.getMonth()]}</p>
             <h3>${esc(e.tytul)}</h3>

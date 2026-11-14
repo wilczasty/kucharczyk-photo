@@ -351,6 +351,10 @@ h3 { font-size: 1.6rem; }
 }
 .event__img { position: relative; min-height: 320px; background: var(--kraft); }
 .event__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.event__img--gora img { object-position: center top; }
+.event__img--dol img { object-position: center bottom; }
+.event__img--cale { background: var(--linen); }
+.event__img--cale img { object-fit: contain; padding: clamp(1rem, 3vw, 2rem); }
 .event__body { position: relative; padding: clamp(1.8rem, 4vw, 3rem); }
 .event__date {
   position: absolute; top: -1px; right: 2rem; margin: 0; padding: .6rem .9rem 1rem;

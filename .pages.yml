@@ -12,7 +12,7 @@ settings:
 
 media:
   - name: portfolio
-    label: Portfolio (folder = kategoria)
+    label: Portfolio (folder = kategoria, dowolny kształt zdjęć)
     input: media/portfolio
     output: media/portfolio
     categories: [image]
@@ -88,9 +88,27 @@ content:
         type: string
       - name: zdjecie
         label: Zdjęcie
+        description: >-
+          Najlepiej poziome lub kwadratowe, ok. 1600 × 1200 px (4:3), najważniejsze w środku kadru.
+          Ramka na komputerze jest prawie kwadratowa, a na telefonie pozioma, więc brzegi mogą zostać przycięte.
+          Grafikę z napisami lub na przezroczystym tle ustaw niżej na „Pokaż całe zdjęcie”.
         type: image
         options:
           media: wydarzenia
+      - name: kadrowanie
+        label: Kadrowanie zdjęcia
+        type: select
+        default: srodek
+        options:
+          values:
+            - name: srodek
+              label: Wypełnij ramkę – środek (może przyciąć brzegi)
+            - name: gora
+              label: Wypełnij ramkę – zachowaj górę
+            - name: dol
+              label: Wypełnij ramkę – zachowaj dół
+            - name: cale
+              label: Pokaż całe zdjęcie (bez przycinania, z tłem)
       - name: zapisy
         label: Link do zapisów (opcjonalnie)
         description: Puste = przycisk „Zapisz się” otwiera formularz kontaktowy z gotową wiadomością.
@@ -231,6 +249,7 @@ content:
         type: text
       - name: zdjecie
         label: Zdjęcie
+        description: Pionowe 4:5, np. 1200 × 1500 px. Inny kształt zostanie przycięty do tej proporcji (od środka).
         type: image
         options:
           media: strona
@@ -275,6 +294,9 @@ content:
             type: text
           - name: zdjecie
             label: Zdjęcie w tle
+            description: >-
+              Poziome, min. 2000 px szerokości, najważniejsze w środku. Zdjęcie wypełnia cały ekran:
+              na komputerze widać prawie całe, na telefonie (ekran pionowy) tylko pas ze środka.
             type: image
             options:
               media: portfolio
