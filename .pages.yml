@@ -1,0 +1,309 @@
+# Konfiguracja panelu Pages CMS (https://app.pagescms.org) – co i jak można edytować.
+# Każdy zapis w panelu = commit w repozytorium → GitHub Actions buduje i publikuje stronę (ok. 1–2 min).
+
+settings:
+  hide: true
+  commit:
+    templates:
+      create: "Panel: dodano {path}"
+      update: "Panel: zmieniono {path}"
+      delete: "Panel: usunięto {path}"
+      rename: "Panel: zmieniono nazwę {oldPath} → {newPath}"
+
+media:
+  - name: portfolio
+    label: Portfolio (folder = kategoria)
+    input: media/portfolio
+    output: media/portfolio
+    categories: [image]
+    rename: safe
+  - name: strona
+    label: Zdjęcia na stronę
+    input: media/strona
+    output: media/strona
+    categories: [image]
+    rename: safe
+  - name: wydarzenia
+    label: Zdjęcia wydarzeń
+    input: media/wydarzenia
+    output: media/wydarzenia
+    categories: [image]
+    rename: safe
+
+content:
+  - name: wydarzenia
+    label: Wydarzenia i warsztaty
+    type: collection
+    path: content/wydarzenia
+    format: json
+    filename:
+      template: "{year}-{month}-{day}-{primary}.json"
+      field: false
+    view:
+      fields: [tytul, data]
+      primary: tytul
+      sort: [data, tytul]
+      default:
+        sort: data
+        order: desc
+    fields:
+      - name: tytul
+        label: Tytuł
+        type: string
+        required: true
+      - name: data
+        label: Data
+        description: Wydarzenia, których data minęła, same znikają ze strony.
+        type: date
+        required: true
+        options:
+          format: yyyy-MM-dd
+      - name: od
+        label: Godzina rozpoczęcia
+        description: "Np. 10:00 (można zostawić puste)"
+        type: string
+        pattern:
+          regex: "^(|([01]\\d|2[0-3]):[0-5]\\d)$"
+          message: "Wpisz godzinę w formacie GG:MM, np. 10:00"
+      - name: do
+        label: Godzina zakończenia
+        description: "Np. 14:00 (można zostawić puste)"
+        type: string
+        pattern:
+          regex: "^(|([01]\\d|2[0-3]):[0-5]\\d)$"
+          message: "Wpisz godzinę w formacie GG:MM, np. 14:00"
+      - name: opis
+        label: Opis
+        type: text
+      - name: miejsce
+        label: Miejsce
+        type: string
+      - name: cena
+        label: Cena
+        description: "Np. 150 zł / os."
+        type: string
+      - name: miejsca
+        label: Liczba miejsc
+        description: "Np. 10 osób"
+        type: string
+      - name: zdjecie
+        label: Zdjęcie
+        type: image
+        options:
+          media: wydarzenia
+      - name: zapisy
+        label: Link do zapisów (opcjonalnie)
+        description: Puste = przycisk „Zapisz się” otwiera formularz kontaktowy z gotową wiadomością.
+        type: string
+
+  - name: galeria
+    label: Portfolio – podpisy i kolejność
+    type: file
+    path: content/galeria.json
+    format: json
+    fields:
+      - name: tytul
+        label: Nagłówek sekcji
+        type: string
+      - name: podtytul
+        label: Podtytuł sekcji
+        type: string
+      - name: zdjecia
+        label: Podpisy zdjęć
+        description: >-
+          Nie trzeba tu niczego dodawać – zdjęcie wgrane do folderu w „Portfolio” samo pojawia się w galerii
+          (najnowsze na początku). Tu możesz dodać podpis (widoczny po najechaniu) albo przypiąć zdjęcie na górę.
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{podpis}"
+        fields:
+          - name: zdjecie
+            label: Zdjęcie
+            type: image
+            required: true
+            options:
+              media: portfolio
+          - name: podpis
+            label: Podpis
+            type: string
+          - name: na_gore
+            label: Przypnij na początek galerii
+            type: boolean
+
+  - name: oferta
+    label: Oferta i cennik
+    type: file
+    path: content/oferta.json
+    format: json
+    fields:
+      - name: podtytul
+        label: Podtytuł sekcji
+        type: string
+      - name: rodzaje_sesji
+        label: Rodzaje sesji
+        type: string
+        list: true
+      - name: pakiety
+        label: Pakiety
+        description: Pakiety S, M i L są połączone z kalendarzem rezerwacji – czas sesji zmienia Adrian.
+        type: object
+        list:
+          min: 3
+          max: 3
+          collapsible:
+            collapsed: true
+            summary: "{id} – {nazwa}"
+        fields:
+          - name: id
+            label: Pakiet
+            type: string
+            readonly: true
+          - name: nazwa
+            label: Nazwa
+            type: string
+          - name: minut
+            label: Czas sesji (minuty)
+            type: number
+            readonly: true
+          - name: zdjec
+            label: Liczba zdjęć
+            type: number
+            options:
+              min: 1
+          - name: cena
+            label: Cena (zł)
+            type: number
+            options:
+              min: 0
+          - name: dodatkowe_zdjecie
+            label: Cena dodatkowego zdjęcia (zł)
+            type: number
+            options:
+              min: 0
+          - name: wyrozniony
+            label: Wyróżniony (zielona karta)
+            type: boolean
+          - name: etykieta
+            label: Etykieta nad kartą
+            description: "Np. najczęściej wybierana (można zostawić puste)"
+            type: string
+      - name: wycena_indywidualna
+        label: Blok „wycena indywidualna”
+        type: object
+        fields:
+          - name: tytul
+            label: Tytuł
+            description: Puste = blok się nie wyświetla.
+            type: string
+          - name: tekst
+            label: Tekst
+            description: "**tekst** = pogrubienie"
+            type: text
+      - name: faq
+        label: Częste pytania
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{pytanie}"
+        fields:
+          - name: pytanie
+            label: Pytanie
+            type: string
+          - name: odpowiedz
+            label: Odpowiedź
+            type: text
+
+  - name: o-mnie
+    label: O mnie
+    type: file
+    path: content/o-mnie.json
+    format: json
+    fields:
+      - name: naglowek
+        label: Nagłówek
+        type: string
+      - name: tekst
+        label: Tekst
+        description: "Pusta linia = nowy akapit, **tekst** = pogrubienie"
+        type: text
+      - name: zdjecie
+        label: Zdjęcie
+        type: image
+        options:
+          media: strona
+      - name: podpis_zdjecia
+        label: Odręczny podpis pod zdjęciem
+        type: string
+      - name: liczby
+        label: Liczby (np. lata z aparatem, sesje)
+        type: object
+        list:
+          max: 4
+        fields:
+          - name: liczba
+            label: Liczba
+            type: string
+          - name: opis
+            label: Opis
+            type: string
+
+  - name: strona
+    label: Strona główna i kontakt
+    type: file
+    path: content/strona.json
+    format: json
+    fields:
+      - name: opis_google
+        label: Opis strony w Google
+        description: Krótki opis (ok. 150 znaków) widoczny w wynikach wyszukiwania.
+        type: text
+      - name: hero
+        label: Baner na górze strony
+        type: object
+        fields:
+          - name: napis
+            label: Odręczny napis
+            type: string
+          - name: tytul
+            label: Tytuł
+            type: string
+          - name: opis
+            label: Opis
+            type: text
+          - name: zdjecie
+            label: Zdjęcie w tle
+            type: image
+            options:
+              media: portfolio
+      - name: kontakt
+        label: Kontakt
+        type: object
+        fields:
+          - name: naglowek
+            label: Nagłówek
+            type: string
+          - name: wstep
+            label: Tekst
+            type: text
+          - name: email
+            label: E-mail
+            type: string
+          - name: telefon
+            label: Telefon (opcjonalnie)
+            type: string
+          - name: obszar
+            label: Obszar działania
+            type: string
+      - name: social
+        label: Media społecznościowe
+        type: object
+        fields:
+          - name: facebook
+            label: Facebook (link)
+            type: string
+          - name: instagram
+            label: Instagram (link)
+            type: string

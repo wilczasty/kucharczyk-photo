@@ -1,0 +1,11 @@
+{
+  "naglowek": "Cześć, jestem Ewelina",
+  "tekst": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.\n\nCras mattis consectetur purus sit amet fermentum. Donec ullamcorper nulla non metus auctor fringilla. Maecenas faucibus mollis interdum, nullam quis risus eget urna mollis ornare vel eu leo.",
+  "zdjecie": "media/strona/o-mnie.jpg",
+  "podpis_zdjecia": "to ja!",
+  "liczby": [
+    { "liczba": "00+", "opis": "lat z aparatem" },
+    { "liczba": "000+", "opis": "sesji" },
+    { "liczba": "∞", "opis": "uśmiechów" }
+  ]
+}

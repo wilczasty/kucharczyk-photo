@@ -1,18 +1,15 @@
 /* =========================================================
-   USTAWIENIA STRONY – tu wpisujesz swoje dane.
-   Nie trzeba ruszać żadnych innych plików JS.
+   USTAWIENIA TECHNICZNE (dla Adriana) – rezerwacje i klucze formularzy.
+   Treści strony (teksty, ceny, kontakt, zdjęcia) edytuje się w panelu Pages CMS.
    ========================================================= */
 window.SITE_CONFIG = {
   // ⭐ WŁASNE REZERWACJE (Google Apps Script + Kalendarz Google) – patrz rezerwacje/INSTRUKCJA.md.
   // Wklej adres wdrożenia skryptu (kończy się na /exec). Gdy puste – używany jest cal.com niżej.
   // Podgląd bez skryptu (przykładowe terminy): dopisz do adresu strony ?rezerwacje=demo
   rezerwacjeUrl: "https://script.google.com/macros/s/AKfycbwAds39BD7ioJB6pcuLnEknvH4CIU9qmNqoCc6Nuio45PBGglH4N8YAg7yjN9b_X1ah/exec",
-  // Pakiety w kalendarzu rezerwacji. "id" musi zgadzać się z USTAWIENIA.pakiety w rezerwacje/Kod.gs.
-  pakiety: [
-    { id: "S", nazwa: "Sesja S", minut: 30, cena: "360 zł" },
-    { id: "M", nazwa: "Sesja M", minut: 50, cena: "490 zł" },
-    { id: "L", nazwa: "Sesja L", minut: 90, cena: "900 zł" },
-  ],
+  // Pakiety rezerwacji (S/M/L: czas i cena), kontakt i social media pochodzą z panelu (content/*.json)
+  // i są dopisywane do tych ustawień w js/dane.js przy budowaniu strony.
+  // Czas pakietu musi zgadzać się z USTAWIENIA.pakiety w rezerwacje/Kod.gs.
 
   // (Zapas) Rezerwacje przez cal.com (połączone z Kalendarzem Google) – klient sam wybiera 30 / 50 / 90 min.
   // Wpisz końcówkę linku po "https://cal.com/". Gdy puste – używany jest Kalendarz Google z pola "booking" niżej.
@@ -32,14 +29,4 @@ window.SITE_CONFIG = {
   // Jak go zdobyć – patrz README.md, krok 5.
   web3formsKey: "",
 
-  contact: {
-    email: "kucharczyk.photo@gmail.com",
-    phone: "",                                   // opcjonalnie, np. "+48 600 000 000"
-    area: "Gmina Kolbudy · Trójmiasto i okolice",
-  },
-
-  social: {
-    facebook: "https://www.facebook.com/fot.ewelina.kucharczyk",
-    instagram: "https://www.instagram.com/kucharczyk.photo/",
-  },
 };

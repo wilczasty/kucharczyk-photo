@@ -1,0 +1,25 @@
+{
+  "podtytul": "Trzy pakiety do wyboru – do każdego możesz dobrać dodatkowe zdjęcia.",
+  "rodzaje_sesji": [
+    "rodzinne i dziecięce",
+    "kobiece",
+    "reportaże",
+    "wieczory panieńskie",
+    "portretowe"
+  ],
+  "pakiety": [
+    { "id": "S", "nazwa": "Sesja krótka", "minut": 30, "zdjec": 6, "cena": 360, "dodatkowe_zdjecie": 50, "wyrozniony": false, "etykieta": "" },
+    { "id": "M", "nazwa": "Sesja standard", "minut": 50, "zdjec": 12, "cena": 490, "dodatkowe_zdjecie": 45, "wyrozniony": true, "etykieta": "najczęściej wybierana" },
+    { "id": "L", "nazwa": "Sesja rozszerzona", "minut": 90, "zdjec": 30, "cena": 900, "dodatkowe_zdjecie": 30, "wyrozniony": false, "etykieta": "" }
+  ],
+  "wycena_indywidualna": {
+    "tytul": "Reportaże i wydarzenia",
+    "tekst": "Wydarzenia sportowe i kulturalne (wyścigi konne, wystawy psów, Runmageddon), reportaże firmowe – **wycena indywidualna**."
+  },
+  "faq": [
+    { "pytanie": "Kiedy dostanę zdjęcia?", "odpowiedz": "Zwykle w ciągu 14 dni od sesji, w przypadku reportaży do 6 tygodni. Zdjęcia otrzymujesz w prywatnej galerii online." },
+    { "pytanie": "Co, jeśli w dniu sesji będzie padać?", "odpowiedz": "Spokojnie – przekładamy sesję na inny dogodny termin, bez dodatkowych kosztów." },
+    { "pytanie": "Czy muszę wpłacić zadatek?", "odpowiedz": "Tak, termin potwierdzam po wpłacie zadatku. Szczegóły prześlę mailowo po rezerwacji." },
+    { "pytanie": "Czy dojeżdżasz na sesje?", "odpowiedz": "Tak! Na terenie gminy Kolbudy i Trójmiasta dojazd jest wliczony w cenę, dalsze wyjazdy wyceniam indywidualnie." }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "kucharczyk-photo",
+  "private": true,
+  "description": "Strona Ewelina Kucharczyk Fotografia – budowanie: npm run build (wynik w _site/)",
+  "type": "module",
+  "scripts": {
+    "build": "node build/build.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

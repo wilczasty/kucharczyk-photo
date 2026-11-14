@@ -2,3 +2,5 @@
 Thumbs.db
 *:Zone.Identifier
 NOTATKI.md
+node_modules/
+_site/
