@@ -6,7 +6,7 @@ window.SITE_CONFIG = {
   // ⭐ WŁASNE REZERWACJE (Google Apps Script + Kalendarz Google) – patrz rezerwacje/INSTRUKCJA.md.
   // Wklej adres wdrożenia skryptu (kończy się na /exec). Gdy puste – używany jest cal.com niżej.
   // Podgląd bez skryptu (przykładowe terminy): dopisz do adresu strony ?rezerwacje=demo
-  rezerwacjeUrl: "",
+  rezerwacjeUrl: "https://script.google.com/macros/s/AKfycbwAds39BD7ioJB6pcuLnEknvH4CIU9qmNqoCc6Nuio45PBGglH4N8YAg7yjN9b_X1ah/exec",
   // Pakiety w kalendarzu rezerwacji. "id" musi zgadzać się z USTAWIENIA.pakiety w rezerwacje/Kod.gs.
   pakiety: [
     { id: "S", nazwa: "Sesja S", minut: 30, cena: "360 zł" },
