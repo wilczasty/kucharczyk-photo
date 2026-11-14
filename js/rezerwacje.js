@@ -85,6 +85,7 @@ window.initRezerwacje = function (root, cfg) {
         </div>
         <div class="rez__week">${["pn", "wt", "śr", "cz", "pt", "sb", "nd"].map(d => `<span>${d}</span>`).join("")}</div>
         <div class="rez__days"></div>
+        <div class="rez__loader" role="status"><span aria-hidden="true"></span>wczytuję wolne terminy…</div>
         <p class="rez__legend"><i></i> wolne terminy</p>
       </div>
       <div class="rez__side" aria-live="polite"></div>
@@ -116,19 +117,23 @@ window.initRezerwacje = function (root, cfg) {
 
     const moja = ++wersja;
     const days = $(".rez__days");
-    days.classList.add("is-loading");
+    const cal = $(".rez__cal");
+    cal.classList.add("is-loading");
+    if (!cache[`${st.pak.id}|${iso(st.mies)}`] && st.widok !== "formularz") {
+      boczny(`<p class="rez__hint">Sprawdzam wolne terminy dla pakietu ${esc(st.pak.nazwa)}…</p>`);
+    }
     let dni;
     try {
       dni = await pobierz(st.pak, st.mies);
     } catch (e) {
       if (moja !== wersja) return;
-      days.classList.remove("is-loading");
+      cal.classList.remove("is-loading");
       days.innerHTML = "";
       boczny(`<p class="rez__hint rez__err">Nie udało się wczytać wolnych terminów. Odśwież stronę za chwilę albo <a href="#kontakt">napisz do mnie</a>.</p>`);
       return;
     }
     if (moja !== wersja) return;
-    days.classList.remove("is-loading");
+    cal.classList.remove("is-loading");
 
     // siatka miesiąca, tydzień od poniedziałku
     const pierwszy = (st.mies.getDay() + 6) % 7;

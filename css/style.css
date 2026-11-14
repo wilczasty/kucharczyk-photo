@@ -443,7 +443,21 @@ h3 { font-size: 1.6rem; }
 .rez__week, .rez__days { display: grid; grid-template-columns: repeat(7, 1fr); gap: .35rem; text-align: center; }
 .rez__week span { font-size: .7rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); padding: .3rem 0; }
 .rez__days { min-height: 15rem; transition: opacity .2s; }
-.rez__days.is-loading { opacity: .35; pointer-events: none; }
+.rez__cal { position: relative; }
+.rez__cal.is-loading .rez__days { opacity: .3; pointer-events: none; }
+.rez__loader {
+  position: absolute; left: 0; right: 0; top: 50%; translate: 0 -30%;
+  display: none; flex-direction: column; align-items: center; gap: .8rem;
+  font: 400 1.5rem var(--script); color: var(--wood-dark); pointer-events: none;
+}
+.rez__cal.is-loading .rez__loader { display: flex; }
+.rez__loader span {
+  width: 2.6rem; height: 2.6rem; border-radius: 50%;
+  border: 2px solid var(--kraft); border-top-color: var(--wood-dark);
+  animation: rezSpin .9s linear infinite;
+}
+@keyframes rezSpin { to { rotate: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .rez__loader span { animation-duration: 2.5s; } }
 .rez__days > * { aspect-ratio: 1; width: min(100%, 2.9rem); justify-self: center; display: grid; place-items: center; border-radius: 50%; font: 400 .95rem var(--sans); }
 .rez__days .is-off { color: var(--muted); opacity: .45; }
 .rez__days button { border: 1px solid var(--kraft); background: var(--linen); color: var(--bark); cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
