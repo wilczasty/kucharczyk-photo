@@ -3,7 +3,18 @@
    Nie trzeba ruszać żadnych innych plików JS.
    ========================================================= */
 window.SITE_CONFIG = {
-  // Rezerwacje przez cal.com (połączone z Kalendarzem Google) – klient sam wybiera 30 / 50 / 90 min.
+  // ⭐ WŁASNE REZERWACJE (Google Apps Script + Kalendarz Google) – patrz rezerwacje/INSTRUKCJA.md.
+  // Wklej adres wdrożenia skryptu (kończy się na /exec). Gdy puste – używany jest cal.com niżej.
+  // Podgląd bez skryptu (przykładowe terminy): dopisz do adresu strony ?rezerwacje=demo
+  rezerwacjeUrl: "",
+  // Pakiety w kalendarzu rezerwacji. "id" musi zgadzać się z USTAWIENIA.pakiety w rezerwacje/Kod.gs.
+  pakiety: [
+    { id: "S", nazwa: "Sesja S", minut: 30, cena: "360 zł" },
+    { id: "M", nazwa: "Sesja M", minut: 50, cena: "490 zł" },
+    { id: "L", nazwa: "Sesja L", minut: 90, cena: "900 zł" },
+  ],
+
+  // (Zapas) Rezerwacje przez cal.com (połączone z Kalendarzem Google) – klient sam wybiera 30 / 50 / 90 min.
   // Wpisz końcówkę linku po "https://cal.com/". Gdy puste – używany jest Kalendarz Google z pola "booking" niżej.
   calLink: "rutko23-o2.pl-2igpgd/sesja",
 

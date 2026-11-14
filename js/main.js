@@ -193,7 +193,14 @@
       b.setAttribute("aria-selected", j === i);
     });
   };
-  if (cfg.calLink) {
+  const demoRez = new URLSearchParams(location.search).get("rezerwacje") === "demo";
+  if ((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg)) {
+    // własny kalendarz (js/rezerwacje.js) – prośba o rezerwację, potwierdzana mailowo
+    tabs.hidden = true;
+    $("#booking-sub").textContent = "Wybierz pakiet i wolny termin – wyślesz prośbę o rezerwację, a ja potwierdzę ją mailowo, zwykle w ciągu 24 godzin.";
+    const kroki = ["Wybierz pakiet, dzień i godzinę", "Podaj dane i wyślij prośbę", "Potwierdzam termin mailowo"];
+    document.querySelectorAll("#booking-steps li").forEach((li, i) => { if (kroki[i]) li.lastChild.textContent = kroki[i]; });
+  } else if (cfg.calLink) {
     // oficjalny widżet cal.com (sam dopasowuje wysokość)
     tabs.hidden = true;
     booking.classList.add("booking__frame--cal");

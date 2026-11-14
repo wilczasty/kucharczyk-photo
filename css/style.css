@@ -419,3 +419,57 @@ h3 { font-size: 1.6rem; }
 }
 .events__newsletter { text-align: center; margin: 2.5rem 0 0; color: var(--muted); }
 .events__newsletter a { color: var(--wood-dark); }
+
+/* ---------- własny kalendarz rezerwacji (js/rezerwacje.js) ---------- */
+.booking__frame.rez { padding: clamp(1.2rem, 3vw, 2.2rem); overflow: visible; }
+.rez__demo { margin: 0 0 1rem; text-align: center; font-size: .85rem; color: var(--wood-dark); background: var(--linen); padding: .4rem; border-radius: var(--radius); }
+.rez__pak { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-bottom: 1.8rem; }
+.rez__pak button {
+  display: grid; gap: .1rem; padding: .8rem .5rem; cursor: pointer; text-align: center;
+  background: transparent; border: 1px solid var(--line); border-radius: var(--radius); color: var(--bark);
+  font: 300 .9rem var(--sans); transition: border-color .2s, background .2s, color .2s;
+}
+.rez__pak b { font: 500 1.3rem var(--serif); }
+.rez__pak span { font-size: .78rem; letter-spacing: .08em; color: var(--muted); }
+.rez__pak button:hover { border-color: var(--wood); }
+.rez__pak button.is-active { background: var(--forest); border-color: var(--forest); color: var(--paper); }
+.rez__pak button.is-active span { color: var(--kraft); }
+.rez__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+.rez__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+.rez__month { margin: 0; font-size: 1.6rem; }
+.rez__nav { background: none; border: 1px solid var(--line); border-radius: 50%; width: 2.4rem; height: 2.4rem; font-size: 1.4rem; line-height: 1; color: var(--wood-dark); cursor: pointer; }
+.rez__nav:hover:not(:disabled) { border-color: var(--wood); }
+.rez__nav:disabled { opacity: .3; cursor: default; }
+.rez__week, .rez__days { display: grid; grid-template-columns: repeat(7, 1fr); gap: .35rem; text-align: center; }
+.rez__week span { font-size: .7rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); padding: .3rem 0; }
+.rez__days { min-height: 15rem; transition: opacity .2s; }
+.rez__days.is-loading { opacity: .35; pointer-events: none; }
+.rez__days > * { aspect-ratio: 1; width: min(100%, 2.9rem); justify-self: center; display: grid; place-items: center; border-radius: 50%; font: 400 .95rem var(--sans); }
+.rez__days .is-off { color: var(--muted); opacity: .45; }
+.rez__days button { border: 1px solid var(--kraft); background: var(--linen); color: var(--bark); cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.rez__days button:hover { border-color: var(--wood); }
+.rez__days button.is-active { background: var(--wood-dark); border-color: var(--wood-dark); color: var(--paper); }
+.rez__legend { margin: .8rem 0 0; font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: .5rem; }
+.rez__legend i { width: .9rem; height: .9rem; border-radius: 50%; background: var(--linen); border: 1px solid var(--kraft); }
+.rez__side { border-left: 1px solid var(--line); padding-left: clamp(1.5rem, 4vw, 3rem); min-height: 15rem; scroll-margin-top: 90px; }
+.rez__day { font: 500 1.45rem/1.3 var(--serif); margin: 0 0 .2rem; }
+.rez__day::first-letter { text-transform: uppercase; }
+.rez__hint { color: var(--muted); font-size: .92rem; margin: 0 0 1rem; }
+.rez__err { color: #a2412c; }
+.rez__times { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: .5rem; }
+.rez__times button {
+  padding: .55rem 0; border: 1px solid var(--kraft); border-radius: var(--radius); background: transparent;
+  font: 400 .95rem var(--sans); color: var(--bark); cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+}
+.rez__times button:hover { background: var(--wood-dark); border-color: var(--wood-dark); color: var(--paper); }
+.rez__back { background: none; border: 0; padding: 0; margin-bottom: .6rem; cursor: pointer; color: var(--wood-dark); font: 400 .8rem var(--sans); letter-spacing: .12em; text-transform: uppercase; }
+.rez__form { padding: 1.2rem; margin-top: .6rem; gap: .9rem; }
+.rez__form .btn { justify-self: stretch; }
+.rez__trap { position: absolute !important; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+@media (max-width: 760px) {
+  .rez__grid { grid-template-columns: 1fr; }
+  .rez__side { border-left: 0; border-top: 1px solid var(--line); padding: 1.5rem 0 0; min-height: 0; }
+  .rez__pak { gap: .4rem; }
+  .rez__pak b { font-size: 1.1rem; }
+  .rez__pak span { font-size: .7rem; letter-spacing: 0; }
+}

@@ -187,15 +187,15 @@
   </div>
 </section>
 
-<!-- ============ REZERWACJA (cal.com / Kalendarz Google – js/config.js) ============ -->
+<!-- ============ REZERWACJA (własny kalendarz js/rezerwacje.js / cal.com – js/config.js) ============ -->
 <section class="section section--kraft booking" id="rezerwacja">
   <div class="container">
     <header class="section__head reveal">
       <p class="eyebrow">Rezerwacja</p>
       <h2>Wybierz termin</h2>
-      <p class="section__sub">Kliknij wolny termin w kalendarzu – potwierdzenie przyjdzie na Twojego maila, a ja odezwę się z dalszymi szczegółami.</p>
+      <p class="section__sub" id="booking-sub">Kliknij wolny termin w kalendarzu – potwierdzenie przyjdzie na Twojego maila, a ja odezwę się z dalszymi szczegółami.</p>
     </header>
-    <ol class="steps reveal">
+    <ol class="steps reveal" id="booking-steps">
       <li><span>1</span>Wybierz pakiet, dzień i godzinę</li>
       <li><span>2</span>Podaj dane i rodzaj sesji</li>
       <li><span>3</span>Ustalamy szczegóły i miejsce</li>
@@ -338,6 +338,7 @@
 <script src="js/config.js"></script>
 <script src="js/portfolio.js"></script>
 <script src="js/wydarzenia.js"></script>
+<script src="js/rezerwacje.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

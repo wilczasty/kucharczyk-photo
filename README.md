@@ -43,6 +43,14 @@ W `index.html` szukaj komentarzy `TODO` – tekst „O mnie”, pakiety i ceny, 
 
 > Nazwy plików bez spacji i polskich znaków (`slub-ania-01.jpg`, nie `Ślub Ania 01.JPG`).
 
+## Krok 4a – własny kalendarz rezerwacji (zalecane)
+Kalendarz w stylu strony, po polsku: klient wybiera pakiet, dzień i wolną godzinę i wysyła **prośbę
+o rezerwację**. Termin od razu blokuje się w Kalendarzu Google, a Ty potwierdzasz go lub odrzucasz
+jednym przyciskiem w mailu. Zaplecze to darmowy skrypt Google Apps Script na Twoim koncie Google.
+- Wdrożenie krok po kroku: `rezerwacje/INSTRUKCJA.md`.
+- Adres skryptu wklejasz w `js/config.js` → `rezerwacjeUrl`. Gdy puste – działa cal.com (niżej).
+- Podgląd wyglądu bez skryptu: dopisz do adresu strony `?rezerwacje=demo`.
+
 ## Krok 4 – rezerwacje przez Kalendarz Google
 > **Test na własnym koncie:** zrób wszystko poniżej na swoim koncie Google i wklej swój link.
 > Rezerwacje testowe trafią do Twojego kalendarza. Gdy wszystko działa, Ewelina tworzy taki sam
