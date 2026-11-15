@@ -272,12 +272,7 @@ h3 { font-size: 1.6rem; }
   background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow);
   overflow: hidden; max-width: 960px; margin: 0 auto;
 }
-.booking__frame iframe { width: 100%; height: 720px; border: 0; display: block; }
-.booking__frame--cal { min-height: 600px; padding: 1rem; }
-.booking__tabs { margin-bottom: 1.5rem; }
-.booking__tabs button { font-size: .9rem; }
 .booking__placeholder { padding: 3rem 2rem; text-align: center; }
-.booking__placeholder code { background: var(--linen); padding: .15rem .4rem; border-radius: 3px; font-size: .9em; }
 
 /* ---------- kontakt ---------- */
 .contact__grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: clamp(2.5rem, 6vw, 5rem); }
@@ -378,7 +373,7 @@ h3 { font-size: 1.6rem; }
 }
 
 /* ---------- newsletter (MailerLite) ---------- */
-.newsletter { background: var(--linen); }   /* gładkie tło (dawniej zielnik: images/tla/zielnik-*.jpg) */
+.newsletter { background: var(--linen); }
 .newsletter__card {
   max-width: 560px; margin: 0 auto;
   background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow);

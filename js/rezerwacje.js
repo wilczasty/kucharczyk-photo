@@ -1,5 +1,5 @@
 /* =========================================================
-   Własny kalendarz rezerwacji (zamiast cal.com).
+   Własny kalendarz rezerwacji.
    Wolne terminy i zapis – skrypt Google Apps Script (rezerwacje/Kod.gs),
    adres w js/config.js → rezerwacjeUrl.
    Podgląd bez skryptu: adres strony + ?rezerwacje=demo

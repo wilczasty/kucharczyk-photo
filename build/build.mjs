@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "_site");
-const STATIC = ["css", "js", "images", "polityka-prywatnosci.html"];
+const STATIC = ["css", "js", "polityka-prywatnosci.html"];
 const IMG = /\.(jpe?g|png|webp)$/i;
 const COPY_ONLY = /\.(svg|gif|avif)$/i;
 const MAX = 2000, THUMB = 900;

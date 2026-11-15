@@ -173,60 +173,15 @@
     });
   }
 
-  /* ---------- rezerwacja: Kalendarz Google ---------- */
+  /* ---------- rezerwacja: własny kalendarz (js/rezerwacje.js + rezerwacje/Kod.gs) ---------- */
   const booking = $("#booking");
-  const tabs = $("#booking-tabs");
-  const toEmbed = url => {
-    // link z "Udostępnij" (calendar.app.google/...) też działa; pełny link dostaje ?gv=true (wersja do osadzenia)
-    if (/\/appointments\/schedules\//.test(url) && !/[?&]gv=true/.test(url)) url += (url.includes("?") ? "&" : "?") + "gv=true";
-    return url;
-  };
-  const slots = (cfg.booking || (cfg.bookingUrl ? [{ label: "", url: cfg.bookingUrl }] : [])).filter(b => b.url);
-  const showBooking = i => {
-    booking.innerHTML = "";
-    const iframe = document.createElement("iframe");
-    iframe.src = toEmbed(slots[i].url);
-    iframe.title = `Rezerwacja terminu sesji ${slots[i].label}`.trim();
-    iframe.loading = "lazy";
-    booking.appendChild(iframe);
-    tabs.querySelectorAll("button").forEach((b, j) => {
-      b.classList.toggle("is-active", j === i);
-      b.setAttribute("aria-selected", j === i);
-    });
-  };
   const demoRez = new URLSearchParams(location.search).get("rezerwacje") === "demo";
-  if ((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg)) {
-    // własny kalendarz (js/rezerwacje.js) – prośba o rezerwację, potwierdzana mailowo
-    tabs.hidden = true;
-    $("#booking-sub").textContent = "Wybierz pakiet i wolny termin – wyślesz prośbę o rezerwację, a ja potwierdzę ją mailowo, zwykle w ciągu 24 godzin.";
-    const kroki = ["Wybierz pakiet, dzień i godzinę", "Podaj dane i wyślij prośbę", "Potwierdzam termin mailowo"];
-    document.querySelectorAll("#booking-steps li").forEach((li, i) => { if (kroki[i]) li.lastChild.textContent = kroki[i]; });
-  } else if (cfg.calLink) {
-    // oficjalny widżet cal.com (sam dopasowuje wysokość)
-    tabs.hidden = true;
-    booking.classList.add("booking__frame--cal");
-    (function (C, A, L) { const p = (a, ar) => a.q.push(ar); const d = C.document; C.Cal = C.Cal || function () { const cal = C.Cal; const ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const ns = ar[1]; api.q = api.q || []; if (typeof ns === "string") { cal.ns[ns] = cal.ns[ns] || api; p(cal.ns[ns], ar); p(cal, ["initNamespace", ns]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
-    Cal("init", "sesja", { origin: "https://cal.com" });
-    Cal.ns.sesja("inline", { elementOrSelector: "#booking", calLink: cfg.calLink, config: { layout: "month_view", theme: "light" } });
-    Cal.ns.sesja("ui", { theme: "light", layout: "month_view", hideEventTypeDetails: false, cssVarsPerTheme: { light: { "cal-brand": "#7d5536" } } });
-  } else if (slots.length) {
-    if (slots.length > 1) {
-      slots.forEach((sl, i) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = sl.label;
-        b.setAttribute("role", "tab");
-        b.addEventListener("click", () => showBooking(i));
-        tabs.appendChild(b);
-      });
-    } else tabs.hidden = true;
-    showBooking(0);
-  } else {
-    tabs.hidden = true;
+  if (!((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg))) {
+    const mail = (cfg.contact || {}).email;
     booking.innerHTML = `
       <div class="booking__placeholder">
-        <p class="script">tu pojawi się kalendarz</p>
-        <p>Wklej link do strony rezerwacji z Kalendarza Google w pliku <code>js/config.js</code> (pole <code>booking</code>).</p>
+        <p class="script">rezerwacje chwilowo niedostępne</p>
+        <p>Napisz do mnie${mail ? ` na <a href="mailto:${mail}">${mail}</a>` : ""} albo przez <a href="#kontakt">formularz kontaktowy</a> – ustalimy termin.</p>
       </div>`;
   }
 

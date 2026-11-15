@@ -26,7 +26,6 @@ js/config.js                – ustawienia techniczne: adres skryptu (rezerwacje
 js/main.js, js/rezerwacje.js – logika (nie trzeba ruszać)
 css/style.css               – wygląd (kolory na górze pliku, sekcja :root)
 polityka-prywatnosci.html   – RODO (uzupełnij dane!)
-images/                     – grafiki wyglądu (tła), images/dodatkowe – nieużyte zdjęcia
 ```
 
 ## Edycja treści i zdjęć – panel Pages CMS
@@ -52,45 +51,16 @@ npm install        # raz (moduł sharp do zmniejszania zdjęć)
 npm run build      # wynik w _site/ – otwórz _site/index.html
 ```
 
-## Krok 4a – własny kalendarz rezerwacji (zalecane)
+## Krok 4 – własny kalendarz rezerwacji
 Kalendarz w stylu strony, po polsku: klient wybiera pakiet, dzień i wolną godzinę i wysyła **prośbę
 o rezerwację**. Termin od razu blokuje się w Kalendarzu Google, a Ty potwierdzasz go lub odrzucasz
 jednym przyciskiem w mailu. Zaplecze to darmowy skrypt Google Apps Script na Twoim koncie Google.
 - Wdrożenie krok po kroku: `rezerwacje/INSTRUKCJA.md`.
-- Adres skryptu wklejasz w `js/config.js` → `rezerwacjeUrl`. Gdy puste – działa cal.com (niżej).
+- Adres skryptu wklejasz w `js/config.js` → `rezerwacjeUrl`. Gdy puste – zamiast kalendarza strona prosi o kontakt mailowy.
 - Podgląd wyglądu bez skryptu: dopisz do adresu strony `?rezerwacje=demo`.
 
-## Krok 4 – rezerwacje przez Kalendarz Google
-> **Test na własnym koncie:** zrób wszystko poniżej na swoim koncie Google i wklej swój link.
-> Rezerwacje testowe trafią do Twojego kalendarza. Gdy wszystko działa, Ewelina tworzy taki sam
-> harmonogram u siebie, a Ty podmieniasz tylko linki w `booking` w `js/config.js`. Nic więcej się nie zmienia.
-
-1. Wejdź na https://calendar.google.com (na komputerze).
-2. **Utwórz → Harmonogram spotkań** (Appointment schedule).
-3. Ustaw: nazwę („Sesja zdjęciowa”), czas trwania, dostępne dni/godziny, bufor między sesjami,
-   maksymalną liczbę rezerwacji dziennie, pola formularza (np. telefon, rodzaj sesji).
-   Kalendarz automatycznie ukrywa godziny, w których Ewelina ma już coś w kalendarzu.
-4. Zapisz → kliknij harmonogram → **Udostępnij** → **Umieszczenie na stronie (Website embed)** → **Wbudowany harmonogram (Inline)**.
-5. Z kodu `<iframe src="...">` skopiuj sam adres (zaczyna się od `https://calendar.google.com/calendar/appointments/schedules/...`)
-   i wklej do `js/config.js` w tablicę `booking` (pole `url` przy odpowiednim pakiecie).
-   Link skrócony z „Udostępnij” (`https://calendar.app.google/...`) też zadziała.
-
-**Różne długości sesji (S 30 / M 50 / L 90 min):** jeden harmonogram Google = jedna długość spotkania,
-więc tworzysz 3 harmonogramy (np. „Sesja S – 30 min”, „Sesja M – 50 min”, „Sesja L – 90 min”) z tymi samymi godzinami
-dostępności. Każdy sprawdza ten sam kalendarz, więc rezerwacja w jednym blokuje termin w pozostałych.
-Na stronie klient przełącza pakiet zakładkami nad kalendarzem.
-
-Każda rezerwacja pojawia się od razu w Kalendarzu Google Eweliny, a klient dostaje maila z potwierdzeniem.
-(W darmowym koncie Google jest jeden podstawowy harmonogram – w zupełności wystarczy. Wersja płatna
-dodaje m.in. przypomnienia mailowe i płatności online.)
-
-**Używane teraz: cal.com** (plan darmowy) – łączy się z Kalendarzem Google, a klient w jednym kalendarzu
-sam wybiera długość sesji (30 / 50 / 90 min). Ustawienie: Event Types → typ sesji → Duration → „Allow multiple durations”.
-Na stronie: `js/config.js` → `calLink` (końcówka linku po `https://cal.com/`). Gdy `calLink` jest puste,
-strona pokazuje harmonogram(y) Google z pola `booking`.
-
 ## Wydarzenia (warsztaty, plenery, mini-sesje)
-Dodaje się je w panelu (patrz wyżej). Zapisy: pole „Link do zapisów” (np. typ wydarzenia w cal.com z „Seats”);
+Dodaje się je w panelu (patrz wyżej). Zapisy: pole „Link do zapisów” (np. Formularz Google);
 puste = przycisk „Zapisz się” przewija do formularza kontaktowego z gotową wiadomością.
 Zaproszenie do subskrybentów: kampania w newsletterze z linkiem `…/#wydarzenia`.
 
