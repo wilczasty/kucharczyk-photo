@@ -27,6 +27,6 @@ window.SITE_CONFIG = {
 
   // Klucz z https://web3forms.com (darmowy) – formularz wysyła maile na Twoją skrzynkę.
   // Jak go zdobyć – patrz README.md, krok 5.
-  web3formsKey: "",
+  web3formsKey: "19da6ddd-5151-4eef-a3e5-e7475367b8ce",
 
 };
