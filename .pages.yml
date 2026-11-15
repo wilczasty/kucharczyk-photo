@@ -277,8 +277,21 @@ content:
     fields:
       - name: opis_google
         label: Opis strony w Google
-        description: Krótki opis (ok. 150 znaków) widoczny w wynikach wyszukiwania.
+        description: Krótki opis (ok. 150 znaków) widoczny w wynikach wyszukiwania i pod podglądem linku na Facebooku.
         type: text
+      - name: podglad_zdjecie
+        label: Zdjęcie do podglądu linku (Facebook, Messenger, WhatsApp)
+        description: >-
+          Pokazuje się, gdy ktoś udostępni link do strony. Zostanie przycięte do poziomego kadru 1200×630
+          (ze środka) – najlepiej poziome zdjęcie. Puste = zdjęcie z banera. Facebook pamięta stary podgląd
+          nawet kilka dni – odświeżysz go na developers.facebook.com/tools/debug („Pobierz ponownie”).
+        type: image
+        options:
+          media: portfolio
+      - name: adres_strony
+        label: Adres strony
+        description: Pełny adres z ukośnikiem na końcu (np. https://twojadomena.pl/). Zmień po kupnie domeny – bez niego podgląd linku nie ma zdjęcia.
+        type: string
       - name: hero
         label: Baner na górze strony
         type: object

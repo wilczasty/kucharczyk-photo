@@ -6,6 +6,7 @@
    - przyjmuje prośbę o rezerwację: wstępnie blokuje termin
      w Kalendarzu Google i wysyła maile,
    - właściciel potwierdza / odrzuca prośbę przyciskiem z maila,
+   - klient może sam odwołać rezerwację linkiem z maila,
    - obsługuje formularz kontaktowy ze strony (mail do właściciela
      + automatyczna odpowiedź do klienta).
    Instrukcja wdrożenia: rezerwacje/INSTRUKCJA.md
@@ -20,6 +21,7 @@ const USTAWIENIA = {
   przerwaMinut: 60,              // wolny czas przed i po każdym wydarzeniu w kalendarzu
   najwczesniejGodzin: 48,        // najkrótszy czas od teraz do sesji
   najdalejDni: 120,              // jak daleko do przodu można rezerwować
+  odwolanieNajpozniejGodzin: 0,  // do ilu godzin przed sesją klient może sam odwołać (0 = do samego początku)
   pakiety: {                     // muszą zgadzać się z js/config.js
     S: { nazwa: "Sesja S", minut: 30 },
     M: { nazwa: "Sesja M", minut: 50 },
@@ -40,6 +42,7 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.akcja === "terminy") return json_(wolneTerminy_(p.od, p.do, p.pakiet));
   if (p.akcja === "decyzja") return stronaDecyzji_(p.id, p.t);
+  if (p.akcja === "odwolaj") return stronaOdwolania_(p.id, p.t);
   return json_({ ok: true, info: "Rezerwacje działają." });
 }
 
@@ -168,7 +171,8 @@ function zarezerwuj_(d) {
       new Date(teraz.getTime() + USTAWIENIA.najdalejDni * 86400e3));
     if (wolne.indexOf(d.godzina) < 0) return { ok: false, blad: "termin" };
 
-    const token = Utilities.getUuid();
+    const token = Utilities.getUuid();          // dla właściciela (potwierdź / odrzuć)
+    const tokenK = Utilities.getUuid();         // dla klienta (odwołaj) – osobny, żeby klient nie mógł sam potwierdzić
     const opis = [
       "PROŚBA O REZERWACJĘ – czeka na potwierdzenie (link w mailu).",
       "",
@@ -185,6 +189,7 @@ function zarezerwuj_(d) {
     ev.setColor(CalendarApp.EventColor.YELLOW);
     ev.setTag("rezerwacja", "prosba");
     ev.setTag("token", token);
+    ev.setTag("tokenK", tokenK);
     ev.setTag("email", email);
     ev.setTag("imie", imie);
     ev.setTag("pakiet", d.pakiet);
@@ -214,7 +219,7 @@ function zarezerwuj_(d) {
         "<p>Otrzymałam prośbę o rezerwację:</p>" +
         "<p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
         "<p>Termin jest wstępnie zarezerwowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.</p>" +
-        "<p>Jeśli masz pytania, po prostu odpowiedz na tę wiadomość.</p>"),
+        "<p>Jeśli masz pytania, po prostu odpowiedz na tę wiadomość.</p>" + stopkaOdwolania_(ev.getId(), tokenK)),
     });
 
     cache.put(kluczLimitu, String(ile + 1), 86400);
@@ -248,14 +253,7 @@ function stronaDecyzji_(id, token) {
       ".withFailureHandler(e=>{document.getElementById('st').textContent='Błąd: '+e.message})" +
       ".decyzja(" + JSON.stringify(id) + "," + JSON.stringify(token) + ",a,document.getElementById('msg').value)}</script>";
   }
-  return HtmlService.createHtmlOutput(
-    "<style>body{font:16px/1.6 system-ui,sans-serif;color:#3f3228;background:#faf6ef;max-width:560px;margin:40px auto;padding:0 16px}" +
-    "h1{font-family:Georgia,serif;font-weight:500}.duze{font-size:20px}label{display:grid;gap:6px;margin:20px 0;color:#7a6a5b}" +
-    "textarea{font:inherit;padding:8px;border:1px solid #d9c4a6;border-radius:4px}.btns{display:flex;gap:12px;flex-wrap:wrap}" +
-    "button{font:inherit;padding:12px 22px;border:0;border-radius:4px;background:#5f6b4e;color:#fff;cursor:pointer}" +
-    "button.no{background:#a2412c}button:disabled{opacity:.5}</style>" + tresc)
-    .setTitle("Rezerwacja – decyzja")
-    .addMetaTag("viewport", "width=device-width, initial-scale=1");
+  return strona_("Rezerwacja – decyzja", tresc);
 }
 
 // Wywoływane z przycisków na stronie decyzji. Wymaga ważnego tokenu z maila.
@@ -278,7 +276,8 @@ function decyzja(id, token, akcja, wiadomosc) {
       subject: "Potwierdzam termin sesji – " + kiedy,
       htmlBody: mail_("Do zobaczenia, " + esc_(imie) + "!",
         "<p>Potwierdzam Twoją rezerwację:</p><p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
-        dopisek + "<p>Szczegóły i miejsce sesji ustalimy mailowo lub telefonicznie.</p>"),
+        dopisek + "<p>Szczegóły i miejsce sesji ustalimy mailowo lub telefonicznie.</p>" +
+        stopkaOdwolania_(ev.getId(), ev.getTag("tokenK"))),
     });
     return "Rezerwacja potwierdzona ✔";
   }
@@ -293,7 +292,88 @@ function decyzja(id, token, akcja, wiadomosc) {
   return "Prośba odrzucona, termin zwolniony";
 }
 
+/* ---------------- odwołanie przez klienta ---------------- */
+// Link w mailach do klienta. Jak przy decyzji: sam link nic nie zmienia, trzeba kliknąć przycisk.
+function stronaOdwolania_(id, token) {
+  const ev = wydarzenieKlienta_(id, token);
+  let tresc;
+  if (!ev) {
+    tresc = "<h1>Rezerwacja nieaktualna</h1><p>Ta rezerwacja została już odwołana albo odrzucona.</p>";
+  } else if (!moznaOdwolac_(ev)) {
+    tresc = "<h1>Nie da się już odwołać online</h1><p>Do sesji zostało za mało czasu. Napisz proszę na <a href='mailto:" +
+      esc_(wlasciciel_()) + "'>" + esc_(wlasciciel_()) + "</a> albo odpowiedz na maila z potwierdzeniem.</p>";
+  } else {
+    tresc =
+      "<h1>Odwołanie rezerwacji</h1>" +
+      "<p class='duze'>" + esc_(USTAWIENIA.pakiety[ev.getTag("pakiet")].nazwa) + " · " + esc_(opisTerminu_(ev.getStartTime(), ev.getEndTime())) + "</p>" +
+      "<p>Chcesz przełożyć sesję? Odwołaj ten termin i wybierz nowy na <a href='" + USTAWIENIA.stronaWww + "#rezerwacja' target='_top'>stronie</a>.</p>" +
+      "<label>Powód (opcjonalnie)<textarea id='msg' rows='3'></textarea></label>" +
+      "<div class='btns'><button class='no' onclick='odw()'>Tak, odwołuję rezerwację</button></div><p id='st'></p>" +
+      "<script>function odw(){document.querySelectorAll('button').forEach(b=>b.disabled=true);document.getElementById('st').textContent='Zapisywanie…';" +
+      "google.script.run.withSuccessHandler(t=>document.body.innerHTML='<h1>'+t+'</h1><p>Wysłałam potwierdzenie na Twojego maila. Możesz zamknąć tę kartę.</p>')" +
+      ".withFailureHandler(e=>{document.getElementById('st').textContent='Błąd: '+e.message})" +
+      ".odwolaj(" + JSON.stringify(id) + "," + JSON.stringify(token) + ",document.getElementById('msg').value)}</script>";
+  }
+  return strona_("Odwołanie rezerwacji", tresc);
+}
+
+// Wywoływane z przycisku na stronie odwołania. Wymaga tokenu klienta z maila.
+function odwolaj(id, token, powod) {
+  const ev = wydarzenieKlienta_(id, token);
+  if (!ev) return "Ta rezerwacja była już odwołana";
+  if (!moznaOdwolac_(ev)) throw new Error("Do sesji zostało za mało czasu – napisz proszę maila.");
+  const pak = USTAWIENIA.pakiety[ev.getTag("pakiet")];
+  const email = ev.getTag("email"), imie = ev.getTag("imie");
+  const kiedy = opisTerminu_(ev.getStartTime(), ev.getEndTime());
+  const byla = ev.getTag("rezerwacja") === "potwierdzona" ? "potwierdzoną" : "niepotwierdzoną jeszcze";
+  powod = tekst_(powod, 1000);
+  ev.deleteEvent();
+  MailApp.sendEmail({
+    to: wlasciciel_(), replyTo: email,
+    subject: "Klient odwołał rezerwację: " + pak.nazwa + ", " + kiedy,
+    htmlBody: mail_("Odwołana rezerwacja",
+      "<p><b>" + esc_(imie) + "</b> &lt;" + esc_(email) + "&gt; odwołał(a) " + byla + " rezerwację:</p>" +
+      "<p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
+      "<p>Powód: " + (powod ? esc_(powod).replace(/\n/g, "<br>") : "–") + "</p>" +
+      "<p>Wydarzenie zostało usunięte z kalendarza, termin jest znowu wolny na stronie.</p>"),
+  });
+  MailApp.sendEmail({
+    to: email, replyTo: wlasciciel_(), name: USTAWIENIA.podpis,
+    subject: "Rezerwacja odwołana – " + kiedy,
+    htmlBody: mail_("Rezerwacja odwołana",
+      "<p>Potwierdzam odwołanie rezerwacji:</p><p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
+      "<p>Jeśli chcesz umówić inny termin, zapraszam na <a href='" + USTAWIENIA.stronaWww + "#rezerwacja'>stronę</a>.</p>"),
+  });
+  return "Rezerwacja odwołana";
+}
+
+function wydarzenieKlienta_(id, token) {
+  if (!id || !token) return null;
+  const ev = kalendarz_(USTAWIENIA.kalendarzRezerwacji).getEventById(id);
+  if (!ev || !ev.getTag("tokenK") || ev.getTag("tokenK") !== token) return null;
+  return ev;
+}
+function moznaOdwolac_(ev) {
+  return ev.getStartTime().getTime() - Date.now() > USTAWIENIA.odwolanieNajpozniejGodzin * 3600e3;
+}
+function stopkaOdwolania_(id, tokenK) {
+  if (!tokenK) return "";
+  const link = ScriptApp.getService().getUrl() + "?akcja=odwolaj&id=" + encodeURIComponent(id) + "&t=" + tokenK;
+  return "<p style='margin-top:24px;padding-top:14px;border-top:1px solid #d9c4a6;color:#7a6a5b;font-size:14px'>" +
+    "Nie możesz przyjść? <a href='" + link + "'>Odwołaj rezerwację</a>. Chcesz przełożyć termin? Odwołaj go i wybierz nowy albo po prostu odpowiedz na tego maila.</p>";
+}
+
 /* ---------------- pomocnicze ---------------- */
+function strona_(tytul, tresc) {
+  return HtmlService.createHtmlOutput(
+    "<style>body{font:16px/1.6 system-ui,sans-serif;color:#3f3228;background:#faf6ef;max-width:560px;margin:40px auto;padding:0 16px}" +
+    "h1{font-family:Georgia,serif;font-weight:500}.duze{font-size:20px}label{display:grid;gap:6px;margin:20px 0;color:#7a6a5b}" +
+    "textarea{font:inherit;padding:8px;border:1px solid #d9c4a6;border-radius:4px}.btns{display:flex;gap:12px;flex-wrap:wrap}" +
+    "button{font:inherit;padding:12px 22px;border:0;border-radius:4px;background:#5f6b4e;color:#fff;cursor:pointer}" +
+    "button.no{background:#a2412c}button:disabled{opacity:.5}a{color:#7d5536}</style>" + tresc)
+    .setTitle(tytul)
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
+}
 function wydarzenie_(id, token) {
   if (!id || !token) return null;
   const ev = kalendarz_(USTAWIENIA.kalendarzRezerwacji).getEventById(id);

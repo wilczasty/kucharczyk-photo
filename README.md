@@ -58,6 +58,8 @@ jednym przyciskiem w mailu. Zaplecze to darmowy skrypt Google Apps Script na Two
 - Wdrożenie krok po kroku: `rezerwacje/INSTRUKCJA.md`.
 - Adres skryptu wklejasz w `js/config.js` → `rezerwacjeUrl`. Gdy puste – zamiast kalendarza strona prosi o kontakt mailowy.
 - Podgląd wyglądu bez skryptu: dopisz do adresu strony `?rezerwacje=demo`.
+- Klient może sam odwołać rezerwację linkiem z maila (strona z przyciskiem „Tak, odwołuję”) – wydarzenie znika z kalendarza,
+  a Ty dostajesz maila. Granica czasowa: `odwolanieNajpozniejGodzin` w `Kod.gs` (0 = do samego początku sesji).
 
 ## Wydarzenia (warsztaty, plenery, mini-sesje)
 Dodaje się je w panelu (patrz wyżej). Zapisy: pole „Link do zapisów” (np. Formularz Google);

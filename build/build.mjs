@@ -12,6 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -182,10 +183,27 @@ fs.writeFileSync(path.join(OUT, "js/dane.js"),
   `\nObject.assign(window.SITE_CONFIG = window.SITE_CONFIG || {}, ${JSON.stringify(cfgPatch)});\n`);
 
 /* =========================================================
-   6. index.html z szablonu
+   6. podgląd linku (og:image): 1200×630 ze zdjęcia z panelu albo z banera
+   ========================================================= */
+const hash = buf => crypto.createHash("sha1").update(buf).digest("hex").slice(0, 8);
+let podgladV = "";
+{
+  const src = normPath(strona.podglad_zdjecie) || normPath(strona.hero?.zdjecie);
+  const srcAbs = src && path.join(ROOT, src);
+  const dest = path.join(OUT, "media/_podglad.jpg");
+  if (srcAbs && fs.existsSync(srcAbs) && sharp && IMG.test(srcAbs)) {
+    await sharp(srcAbs, { failOn: "none" }).rotate().resize(1200, 630, { fit: "cover", position: "centre" })
+      .jpeg({ quality: 82, mozjpeg: true }).toFile(dest);
+    podgladV = hash(fs.readFileSync(dest));
+  } else console.warn("⚠ brak zdjęcia do podglądu linku (albo modułu sharp)");
+}
+const adres = String(strona.adres_strony || "").trim().replace(/\/?$/, "/");
+
+/* =========================================================
+   7. index.html z szablonu
    ========================================================= */
 const view = {
-  strona: { ...strona, hero: { ...strona.hero, zdjecie: mediaUrl(strona.hero?.zdjecie), opis_html: inline(strona.hero?.opis) } },
+  strona: { ...strona, adres: podgladV && adres !== "/" ? adres : "", hero: { ...strona.hero, zdjecie: mediaUrl(strona.hero?.zdjecie), opis_html: inline(strona.hero?.opis) } },
   o_mnie: { ...oMnie, zdjecie: mediaUrl(oMnie.zdjecie), tekst_html: paragraphs(oMnie.tekst) },
   oferta: {
     ...oferta,
@@ -194,7 +212,21 @@ const view = {
     faq: (oferta.faq || []).map(f => ({ ...f, odpowiedz_html: inline(f.odpowiedz) })),
   },
   galeria,
+  podglad_v: podgladV,
 };
 fs.writeFileSync(path.join(OUT, "index.html"), template(fs.readFileSync(path.join(ROOT, "index.html"), "utf8"), view));
+
+/* =========================================================
+   8. wersje plików: css/x.css → css/x.css?v=<odcisk treści>
+      GitHub Pages każe przeglądarce trzymać pliki 10 min – po zmianie pliku zmienia się adres,
+      więc przeglądarka nie połączy nowego HTML ze starym JS/CSS.
+   ========================================================= */
+for (const page of ["index.html", "polityka-prywatnosci.html"]) {
+  const f = path.join(OUT, page);
+  fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace(/((?:href|src)=")((?:css|js)\/[^"?#]+)"/g, (m, pre, ref) => {
+    const abs = path.join(OUT, ref);
+    return fs.existsSync(abs) ? `${pre}${ref}?v=${hash(fs.readFileSync(abs))}"` : m;
+  }));
+}
 
 console.log(`✓ _site gotowe: ${photos.length} zdjęć w ${Object.keys(categories).length} kategoriach, ${wydarzenia.length} wydarzeń${sharp ? "" : " (bez zmniejszania zdjęć)"}`);
