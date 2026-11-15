@@ -253,9 +253,10 @@
   });
   $("#year").textContent = new Date().getFullYear();
 
-  /* ---------- formularz (Web3Forms) ---------- */
+  /* ---------- formularz kontaktowy (Google Apps Script – rezerwacje/Kod.gs) ---------- */
   const form = $("#contact-form");
   const status = $("#form-status");
+  const btn = form.querySelector('button[type="submit"]');
   form.addEventListener("submit", async e => {
     e.preventDefault();
     status.className = "form__status";
@@ -264,40 +265,34 @@
       status.classList.add("err");
       return;
     }
-    if (!cfg.web3formsKey) {
-      status.textContent = "Formularz nie jest jeszcze skonfigurowany (brak klucza web3formsKey w js/config.js).";
+    if (!cfg.rezerwacjeUrl) {
+      status.textContent = "Formularz nie jest jeszcze skonfigurowany (brak adresu skryptu rezerwacjeUrl w js/config.js).";
       status.classList.add("err");
       return;
     }
     const f = Object.fromEntries(new FormData(form));
-    // Polskie nazwy pól = polskie etykiety w mailu od Web3Forms.
-    const data = {
-      access_key: cfg.web3formsKey,
-      subject: `Nowa wiadomość ze strony – ${f.session_type}`,
-      from_name: "Strona – Ewelina Kucharczyk Fotografia",
-      replyto: f.email, // „Odpowiedz” w poczcie trafia do klienta
-      botcheck: f.botcheck || "",
-      "Imię": f.name,
-      "E-mail": f.email,
-      "Rodzaj sesji": f.session_type,
-      "Wiadomość": f.message,
-      "Zgoda RODO": f.rodo ? "tak" : "nie",
+    const dane = {
+      akcja: "kontakt",
+      imie: f.name, email: f.email, rodzaj: f.session_type, wiadomosc: f.message,
+      zgoda: !!f.rodo, strona: f.strona || "",
     };
     status.textContent = "Wysyłanie…";
+    btn.disabled = true;
     try {
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(data),
-      });
+      // text/plain – bez preflight CORS (Apps Script go nie obsługuje)
+      const res = await fetch(cfg.rezerwacjeUrl, { method: "POST", body: JSON.stringify(dane) });
       const json = await res.json();
-      if (!json.success) throw new Error(json.message);
+      if (!json.ok) throw new Error(json.blad || "błąd");
       form.reset();
-      status.textContent = "Dziękuję! Wiadomość wysłana – odezwę się wkrótce.";
+      status.textContent = "Dziękuję! Wiadomość wysłana – potwierdzenie przyjdzie na Twojego maila.";
       status.classList.add("ok");
     } catch (err) {
-      status.textContent = "Ups, coś poszło nie tak. Napisz proszę bezpośrednio na maila.";
+      status.textContent = err.message === "limit"
+        ? "Wysłano już kilka wiadomości z tego adresu – napisz proszę bezpośrednio na maila."
+        : "Ups, coś poszło nie tak. Napisz proszę bezpośrednio na maila.";
       status.classList.add("err");
+    } finally {
+      btn.disabled = false;
     }
   });
 })();

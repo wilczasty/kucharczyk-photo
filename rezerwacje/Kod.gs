@@ -5,7 +5,9 @@
    - podaje stronie wolne terminy (bez szczegółów wydarzeń),
    - przyjmuje prośbę o rezerwację: wstępnie blokuje termin
      w Kalendarzu Google i wysyła maile,
-   - właściciel potwierdza / odrzuca prośbę przyciskiem z maila.
+   - właściciel potwierdza / odrzuca prośbę przyciskiem z maila,
+   - obsługuje formularz kontaktowy ze strony (mail do właściciela
+     + automatyczna odpowiedź do klienta).
    Instrukcja wdrożenia: rezerwacje/INSTRUKCJA.md
    ========================================================= */
 
@@ -27,6 +29,8 @@ const USTAWIENIA = {
   kalendarzeZajete: ["primary"],
   // Kalendarz, do którego trafiają rezerwacje.
   kalendarzRezerwacji: "primary",
+  kontaktDziennie: 40,           // maks. wiadomości z formularza na dobę (ochrona limitu Gmaila ~100/dobę)
+  kontaktNaEmail: 5,             // maks. wiadomości z jednego adresu na dobę
   podpis: "Ewelina Kucharczyk · Fotografia",
   stronaWww: "https://wilczasty.github.io/kucharczyk-photo/",
 };
@@ -39,12 +43,51 @@ function doGet(e) {
   return json_({ ok: true, info: "Rezerwacje działają." });
 }
 
-/* ---------------- wejście: POST (prośba o rezerwację) ---------------- */
+/* ---------------- wejście: POST (rezerwacja albo formularz kontaktowy) ---------------- */
 function doPost(e) {
   let d;
   try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, blad: "dane" }); }
   if (d.strona) return json_({ ok: true });           // pułapka na boty (ukryte pole)
+  if (d.akcja === "kontakt") return json_(kontakt_(d));
   return json_(zarezerwuj_(d));
+}
+
+/* ---------------- formularz kontaktowy ---------------- */
+function kontakt_(d) {
+  const imie = tekst_(d.imie, 80), email = tekst_(d.email, 120), rodzaj = tekst_(d.rodzaj, 80), wiadomosc = tekst_(d.wiadomosc, 5000);
+  if (!imie || !wiadomosc || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !d.zgoda) return { ok: false, blad: "dane" };
+
+  // limity: z jednego adresu i łącznie na dobę
+  const cache = CacheService.getScriptCache();
+  const kluczEmail = "kontakt_" + email.toLowerCase();
+  const kluczDzien = "kontakt_" + fmt_(new Date(), "yyyy-MM-dd");
+  const ileEmail = Number(cache.get(kluczEmail) || 0), ileDzien = Number(cache.get(kluczDzien) || 0);
+  if (ileEmail >= USTAWIENIA.kontaktNaEmail || ileDzien >= USTAWIENIA.kontaktDziennie) return { ok: false, blad: "limit" };
+  cache.put(kluczEmail, String(ileEmail + 1), 86400);
+  cache.put(kluczDzien, String(ileDzien + 1), 86400);
+
+  MailApp.sendEmail({
+    to: wlasciciel_(),
+    replyTo: email,
+    name: "Strona – formularz kontaktowy",
+    subject: "Wiadomość ze strony: " + imie + (rodzaj ? " – " + rodzaj : ""),
+    htmlBody: mail_("Nowa wiadomość ze strony",
+      "<p><b>" + esc_(imie) + "</b> &lt;<a href='mailto:" + esc_(email) + "'>" + esc_(email) + "</a>&gt;</p>" +
+      (rodzaj ? "<p>Temat: <b>" + esc_(rodzaj) + "</b></p>" : "") +
+      "<p style='white-space:pre-wrap;background:#f1e9dc;padding:14px 16px;border-radius:4px'>" + esc_(wiadomosc) + "</p>" +
+      "<p style='color:#7a6a5b;font-size:13px'>Odpowiedz na tego maila – odpowiedź trafi prosto do " + esc_(imie) + ".</p>"),
+  });
+  // Automatyczna odpowiedź – bez treści wiadomości (żeby formularz nie służył do rozsyłania spamu).
+  MailApp.sendEmail({
+    to: email,
+    replyTo: wlasciciel_(),
+    name: USTAWIENIA.podpis,
+    subject: "Dziękuję za wiadomość",
+    htmlBody: mail_("Dziękuję, " + esc_(imie.slice(0, 40)) + "!",
+      "<p>Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.</p>" +
+      "<p>Jeśli chcesz coś dopisać, po prostu odpowiedz na tego maila.</p>"),
+  });
+  return { ok: true };
 }
 
 /* ---------------- wolne terminy ---------------- */

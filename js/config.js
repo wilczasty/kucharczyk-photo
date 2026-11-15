@@ -1,10 +1,11 @@
 /* =========================================================
-   USTAWIENIA TECHNICZNE (dla Adriana) – rezerwacje i klucze formularzy.
+   USTAWIENIA TECHNICZNE (dla Adriana) – rezerwacje i formularz kontaktowy.
    Treści strony (teksty, ceny, kontakt, zdjęcia) edytuje się w panelu Pages CMS.
    ========================================================= */
 window.SITE_CONFIG = {
   // ⭐ WŁASNE REZERWACJE (Google Apps Script + Kalendarz Google) – patrz rezerwacje/INSTRUKCJA.md.
-  // Wklej adres wdrożenia skryptu (kończy się na /exec). Gdy puste – używany jest cal.com niżej.
+  // Wklej adres wdrożenia skryptu (kończy się na /exec). Ten sam skrypt obsługuje formularz kontaktowy.
+  // Gdy puste – rezerwacje przez cal.com niżej, a formularz kontaktowy nie działa.
   // Podgląd bez skryptu (przykładowe terminy): dopisz do adresu strony ?rezerwacje=demo
   rezerwacjeUrl: "https://script.google.com/macros/s/AKfycbwAds39BD7ioJB6pcuLnEknvH4CIU9qmNqoCc6Nuio45PBGglH4N8YAg7yjN9b_X1ah/exec",
   // Pakiety rezerwacji (S/M/L: czas i cena), kontakt i social media pochodzą z panelu (content/*.json)
@@ -24,9 +25,4 @@ window.SITE_CONFIG = {
     { label: "M · 50 min", url: "" },
     { label: "L · 90 min", url: "" },
   ],
-
-  // Klucz z https://web3forms.com (darmowy) – formularz wysyła maile na Twoją skrzynkę.
-  // Jak go zdobyć – patrz README.md, krok 5.
-  web3formsKey: "19da6ddd-5151-4eef-a3e5-e7475367b8ce",
-
 };

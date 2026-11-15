@@ -8,7 +8,7 @@ Statyczna strona (HTML + CSS + JS), bez żadnych płatnych usług.
 | Zdjęcia portfolio | w repozytorium, folder `media/portfolio/` (podfolder = kategoria) | 0 zł |
 | Panel do edycji treści | Pages CMS (app.pagescms.org) | 0 zł |
 | Rezerwacje | własny kalendarz (Google Apps Script + Kalendarz Google) | 0 zł |
-| Formularz kontaktowy | Web3Forms | 0 zł (250 wiadomości/mies.) |
+| Formularz kontaktowy | ten sam skrypt Google Apps Script (maile z Gmaila) | 0 zł (do ~100 maili/dobę) |
 | Własna domena (opcjonalnie) | np. ewelinakucharczyk.pl | ~10–60 zł/rok |
 
 ## Struktura
@@ -22,7 +22,7 @@ media/strona/, media/wydarzenia/ – zdjęcia do „O mnie” i wydarzeń
 .pages.yml                  – konfiguracja panelu Pages CMS (pola, etykiety)
 build/build.mjs             – budowanie strony do _site/ (teksty, lista zdjęć, zmniejszanie zdjęć)
 .github/workflows/strona.yml – automatyczne budowanie i publikacja po każdej zmianie
-js/config.js                – ustawienia techniczne: rezerwacje, klucz formularza
+js/config.js                – ustawienia techniczne: adres skryptu (rezerwacje + formularz)
 js/main.js, js/rezerwacje.js – logika (nie trzeba ruszać)
 css/style.css               – wygląd (kolory na górze pliku, sekcja :root)
 polityka-prywatnosci.html   – RODO (uzupełnij dane!)
@@ -94,10 +94,12 @@ Dodaje się je w panelu (patrz wyżej). Zapisy: pole „Link do zapisów” (np.
 puste = przycisk „Zapisz się” przewija do formularza kontaktowego z gotową wiadomością.
 Zaproszenie do subskrybentów: kampania w newsletterze z linkiem `…/#wydarzenia`.
 
-## Krok 5 – formularz kontaktowy (Web3Forms)
-1. Wejdź na https://web3forms.com → wpisz e-mail Eweliny → „Create Access Key”.
-2. Klucz przyjdzie mailem – wklej go do `js/config.js` w pole `web3formsKey`.
-3. Wiadomości z formularza trafiają prosto na tę skrzynkę.
+## Krok 5 – formularz kontaktowy
+Obsługuje go ten sam skrypt co rezerwacje (`rezerwacje/Kod.gs`, funkcja `kontakt_`) – nic osobnego nie trzeba zakładać.
+- Wiadomość przychodzi na skrzynkę konta Google, na którym wdrożony jest skrypt. „Odpowiedz” trafia do klienta.
+- Klient dostaje automatyczne potwierdzenie (bez treści swojej wiadomości – żeby formularza nie dało się użyć do spamu).
+- Limity w `USTAWIENIA`: `kontaktNaEmail` (z jednego adresu na dobę) i `kontaktDziennie` (łącznie na dobę).
+- Po każdej zmianie w `Kod.gs`: Wdróż → Zarządzaj wdrożeniami → ✏️ → Wersja: **Nowa wersja** → Wdróż (adres `/exec` się nie zmienia).
 
 ## Krok 6 – publikacja (GitHub Pages + GitHub Actions)
 Repo: https://github.com/wilczasty/kucharczyk-photo, **Settings → Pages → Source: GitHub Actions**.
