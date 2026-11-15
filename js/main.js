@@ -269,10 +269,20 @@
       status.classList.add("err");
       return;
     }
-    const data = Object.fromEntries(new FormData(form));
-    data.access_key = cfg.web3formsKey;
-    data.subject = `Nowa wiadomość ze strony – ${data.session_type}`;
-    data.from_name = "Strona – Ewelina Kucharczyk Fotografia";
+    const f = Object.fromEntries(new FormData(form));
+    // Polskie nazwy pól = polskie etykiety w mailu od Web3Forms.
+    const data = {
+      access_key: cfg.web3formsKey,
+      subject: `Nowa wiadomość ze strony – ${f.session_type}`,
+      from_name: "Strona – Ewelina Kucharczyk Fotografia",
+      replyto: f.email, // „Odpowiedz” w poczcie trafia do klienta
+      botcheck: f.botcheck || "",
+      "Imię": f.name,
+      "E-mail": f.email,
+      "Rodzaj sesji": f.session_type,
+      "Wiadomość": f.message,
+      "Zgoda RODO": f.rodo ? "tak" : "nie",
+    };
     status.textContent = "Wysyłanie…";
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
