@@ -269,6 +269,148 @@ content:
             label: Opis
             type: string
 
+  - name: rezerwacje
+    label: Rezerwacje – godziny i zasady
+    type: file
+    path: content/rezerwacje.json
+    format: json
+    fields:
+      - name: dni_pracy
+        label: Dni, w które można rezerwować sesje
+        type: select
+        options:
+          multiple: true
+          values:
+            - name: "1"
+              label: poniedziałek
+            - name: "2"
+              label: wtorek
+            - name: "3"
+              label: środa
+            - name: "4"
+              label: czwartek
+            - name: "5"
+              label: piątek
+            - name: "6"
+              label: sobota
+            - name: "7"
+              label: niedziela
+      - name: od
+        label: Najwcześniejsza godzina rozpoczęcia sesji
+        type: select
+        options:
+          values:
+            - "06:00"
+            - "06:30"
+            - "07:00"
+            - "07:30"
+            - "08:00"
+            - "08:30"
+            - "09:00"
+            - "09:30"
+            - "10:00"
+            - "10:30"
+            - "11:00"
+            - "11:30"
+            - "12:00"
+            - "12:30"
+            - "13:00"
+            - "13:30"
+            - "14:00"
+            - "14:30"
+            - "15:00"
+            - "15:30"
+            - "16:00"
+            - "16:30"
+            - "17:00"
+            - "17:30"
+            - "18:00"
+            - "18:30"
+            - "19:00"
+            - "19:30"
+            - "20:00"
+            - "20:30"
+            - "21:00"
+            - "21:30"
+            - "22:00"
+            - "22:30"
+      - name: do
+        label: Godzina, do której sesja musi się skończyć
+        type: select
+        options:
+          values:
+            - "06:00"
+            - "06:30"
+            - "07:00"
+            - "07:30"
+            - "08:00"
+            - "08:30"
+            - "09:00"
+            - "09:30"
+            - "10:00"
+            - "10:30"
+            - "11:00"
+            - "11:30"
+            - "12:00"
+            - "12:30"
+            - "13:00"
+            - "13:30"
+            - "14:00"
+            - "14:30"
+            - "15:00"
+            - "15:30"
+            - "16:00"
+            - "16:30"
+            - "17:00"
+            - "17:30"
+            - "18:00"
+            - "18:30"
+            - "19:00"
+            - "19:30"
+            - "20:00"
+            - "20:30"
+            - "21:00"
+            - "21:30"
+            - "22:00"
+            - "22:30"
+      - name: krok_minut
+        label: Co ile minut proponować godzinę rozpoczęcia
+        description: 30 = 9:00, 9:30, 10:00… ; 60 = tylko pełne godziny.
+        type: number
+        options:
+          min: 15
+          max: 120
+      - name: przerwa_minut
+        label: Przerwa przed i po każdym wydarzeniu w kalendarzu (minuty)
+        description: Czas na dojazd i przygotowanie. Dotyczy wszystkich wydarzeń w Twoim Kalendarzu Google, nie tylko sesji.
+        type: number
+        options:
+          min: 0
+          max: 240
+      - name: najwczesniej_godzin
+        label: Najwcześniej ile godzin przed sesją można ją zarezerwować
+        description: 48 = terminy na dziś i jutro są niedostępne.
+        type: number
+        options:
+          min: 0
+          max: 720
+      - name: najdalej_dni
+        label: Na ile dni do przodu można rezerwować
+        type: number
+        options:
+          min: 7
+          max: 365
+      - name: odwolanie_najpozniej_godzin
+        label: Do ilu godzin przed sesją klient może sam ją odwołać (link w mailu)
+        description: 0 = aż do początku sesji. Później strona odwołania prosi o kontakt mailowy.
+        type: number
+        options:
+          min: 0
+          max: 720
+      - name: autoodpowiedz
+        label: Automatyczna odpowiedź na wiadomość z formularza kontaktowego
+        description: Klient dostaje ją od razu po wysłaniu formularza. Pusta linia = nowy akapit. Na górze „Dziękuję, <imię>!”, na dole podpis.
+        type: text
   - name: strona
     label: Strona główna i kontakt
     type: file

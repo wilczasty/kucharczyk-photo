@@ -1,0 +1,11 @@
+{
+  "dni_pracy": ["1", "2", "3", "4", "5"],
+  "od": "09:00",
+  "do": "18:00",
+  "krok_minut": 30,
+  "przerwa_minut": 60,
+  "najwczesniej_godzin": 48,
+  "najdalej_dni": 120,
+  "odwolanie_najpozniej_godzin": 48,
+  "autoodpowiedz": "Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.\n\nJeśli chcesz coś dopisać, po prostu odpowiedz na tego maila."
+}

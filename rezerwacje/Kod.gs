@@ -12,6 +12,9 @@
    Instrukcja wdrożenia: rezerwacje/INSTRUKCJA.md
    ========================================================= */
 
+// Godziny, dni, przerwy, limity i tekst autoodpowiedzi edytuje się w panelu Pages CMS
+// („Rezerwacje – godziny i zasady” → content/rezerwacje.json). Skrypt czyta je z opublikowanej strony
+// (stronaWww + "rezerwacje.json", pamięć 5 min). Wartości niżej to zapas, gdy strona nie odpowiada.
 const USTAWIENIA = {
   strefa: "Europe/Warsaw",
   dniPracy: [1, 2, 3, 4, 5],     // 1 = poniedziałek … 7 = niedziela
@@ -21,7 +24,7 @@ const USTAWIENIA = {
   przerwaMinut: 60,              // wolny czas przed i po każdym wydarzeniu w kalendarzu
   najwczesniejGodzin: 48,        // najkrótszy czas od teraz do sesji
   najdalejDni: 120,              // jak daleko do przodu można rezerwować
-  odwolanieNajpozniejGodzin: 0,  // do ilu godzin przed sesją klient może sam odwołać (0 = do samego początku)
+  odwolanieNajpozniejGodzin: 48, // do ilu godzin przed sesją klient może sam odwołać (0 = do samego początku)
   pakiety: {                     // muszą zgadzać się z js/config.js
     S: { nazwa: "Sesja S", minut: 30 },
     M: { nazwa: "Sesja M", minut: 50 },
@@ -33,12 +36,47 @@ const USTAWIENIA = {
   kalendarzRezerwacji: "primary",
   kontaktDziennie: 40,           // maks. wiadomości z formularza na dobę (ochrona limitu Gmaila ~100/dobę)
   kontaktNaEmail: 5,             // maks. wiadomości z jednego adresu na dobę
+  autoodpowiedz: "Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.\n\nJeśli chcesz coś dopisać, po prostu odpowiedz na tego maila.",
   podpis: "Ewelina Kucharczyk · Fotografia",
   stronaWww: "https://wilczasty.github.io/kucharczyk-photo/",
 };
 
+/* ---------------- ustawienia z panelu ---------------- */
+// Nadpisuje USTAWIENIA wartościami z content/rezerwacje.json (tylko poprawnymi).
+function wczytajUstawienia_() {
+  const cache = CacheService.getScriptCache();
+  let txt = cache.get("ustawienia");
+  if (!txt) {
+    try {
+      const res = UrlFetchApp.fetch(USTAWIENIA.stronaWww + "rezerwacje.json", { muteHttpExceptions: true });
+      if (res.getResponseCode() === 200) {
+        txt = res.getContentText();
+        JSON.parse(txt);
+        cache.put("ustawienia", txt, 300);
+        PropertiesService.getScriptProperties().setProperty("ustawienia", txt);   // ostatnie dobre – na awarię strony
+      }
+    } catch (err) { txt = null; }
+    if (!txt) txt = PropertiesService.getScriptProperties().getProperty("ustawienia");
+  }
+  if (!txt) return;
+  let u; try { u = JSON.parse(txt); } catch (err) { return; }
+  const godz = v => typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+  const liczba = (v, min, max) => { const n = Number(v); return v !== "" && v !== null && isFinite(n) && n >= min && n <= max ? n : null; };
+  const dni = (Array.isArray(u.dni_pracy) ? u.dni_pracy : []).map(Number).filter(n => n >= 1 && n <= 7);
+  if (dni.length) USTAWIENIA.dniPracy = dni;
+  if (godz(u.od) && godz(u.do) && u.od < u.do) { USTAWIENIA.od = u.od; USTAWIENIA.do = u.do; }
+  const ust = (klucz, pole, min, max) => { const n = liczba(u[pole], min, max); if (n !== null) USTAWIENIA[klucz] = n; };
+  ust("krokMinut", "krok_minut", 15, 120);
+  ust("przerwaMinut", "przerwa_minut", 0, 240);
+  ust("najwczesniejGodzin", "najwczesniej_godzin", 0, 720);
+  ust("najdalejDni", "najdalej_dni", 7, 365);
+  ust("odwolanieNajpozniejGodzin", "odwolanie_najpozniej_godzin", 0, 720);
+  if (typeof u.autoodpowiedz === "string" && u.autoodpowiedz.trim()) USTAWIENIA.autoodpowiedz = u.autoodpowiedz.trim();
+}
+
 /* ---------------- wejście: GET ---------------- */
 function doGet(e) {
+  wczytajUstawienia_();
   const p = (e && e.parameter) || {};
   if (p.akcja === "terminy") return json_(wolneTerminy_(p.od, p.do, p.pakiet));
   if (p.akcja === "decyzja") return stronaDecyzji_(p.id, p.t);
@@ -48,6 +86,7 @@ function doGet(e) {
 
 /* ---------------- wejście: POST (rezerwacja albo formularz kontaktowy) ---------------- */
 function doPost(e) {
+  wczytajUstawienia_();
   let d;
   try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, blad: "dane" }); }
   if (d.strona) return json_({ ok: true });           // pułapka na boty (ukryte pole)
@@ -87,8 +126,7 @@ function kontakt_(d) {
     name: USTAWIENIA.podpis,
     subject: "Dziękuję za wiadomość",
     htmlBody: mail_("Dziękuję, " + esc_(imie.slice(0, 40)) + "!",
-      "<p>Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.</p>" +
-      "<p>Jeśli chcesz coś dopisać, po prostu odpowiedz na tego maila.</p>"),
+      akapity_(USTAWIENIA.autoodpowiedz)),
   });
   return { ok: true };
 }
@@ -258,6 +296,7 @@ function stronaDecyzji_(id, token) {
 
 // Wywoływane z przycisków na stronie decyzji. Wymaga ważnego tokenu z maila.
 function decyzja(id, token, akcja, wiadomosc) {
+  wczytajUstawienia_();
   const ev = wydarzenie_(id, token);
   if (!ev) throw new Error("Nie znaleziono prośby.");
   if (ev.getTag("rezerwacja") !== "prosba") return "Ta rezerwacja była już rozpatrzona";
@@ -300,7 +339,8 @@ function stronaOdwolania_(id, token) {
   if (!ev) {
     tresc = "<h1>Rezerwacja nieaktualna</h1><p>Ta rezerwacja została już odwołana albo odrzucona.</p>";
   } else if (!moznaOdwolac_(ev)) {
-    tresc = "<h1>Nie da się już odwołać online</h1><p>Do sesji zostało za mało czasu. Napisz proszę na <a href='mailto:" +
+    tresc = "<h1>Nie da się już odwołać online</h1><p>Rezerwację można odwołać online najpóźniej " + USTAWIENIA.odwolanieNajpozniejGodzin +
+      " godz. przed sesją. Napisz proszę na <a href='mailto:" +
       esc_(wlasciciel_()) + "'>" + esc_(wlasciciel_()) + "</a> albo odpowiedz na maila z potwierdzeniem.</p>";
   } else {
     tresc =
@@ -319,6 +359,7 @@ function stronaOdwolania_(id, token) {
 
 // Wywoływane z przycisku na stronie odwołania. Wymaga tokenu klienta z maila.
 function odwolaj(id, token, powod) {
+  wczytajUstawienia_();
   const ev = wydarzenieKlienta_(id, token);
   if (!ev) return "Ta rezerwacja była już odwołana";
   if (!moznaOdwolac_(ev)) throw new Error("Do sesji zostało za mało czasu – napisz proszę maila.");
@@ -360,7 +401,8 @@ function stopkaOdwolania_(id, tokenK) {
   if (!tokenK) return "";
   const link = ScriptApp.getService().getUrl() + "?akcja=odwolaj&id=" + encodeURIComponent(id) + "&t=" + tokenK;
   return "<p style='margin-top:24px;padding-top:14px;border-top:1px solid #d9c4a6;color:#7a6a5b;font-size:14px'>" +
-    "Nie możesz przyjść? <a href='" + link + "'>Odwołaj rezerwację</a>. Chcesz przełożyć termin? Odwołaj go i wybierz nowy albo po prostu odpowiedz na tego maila.</p>";
+    "Nie możesz przyjść? <a href='" + link + "'>Odwołaj rezerwację</a>" +
+    (USTAWIENIA.odwolanieNajpozniejGodzin ? " (najpóźniej " + USTAWIENIA.odwolanieNajpozniejGodzin + " godz. przed sesją)" : "") + ". Chcesz przełożyć termin? Odwołaj go i wybierz nowy albo po prostu odpowiedz na tego maila.</p>";
 }
 
 /* ---------------- pomocnicze ---------------- */
@@ -396,6 +438,10 @@ function opisTerminu_(s, k) {
   return DNI_[Number(fmt_(s, "u"))] + ", " + Number(fmt_(s, "d")) + " " + MIES_[Number(fmt_(s, "M")) - 1] + " " + fmt_(s, "yyyy") +
     ", " + fmt_(s, "HH:mm") + "–" + fmt_(k, "HH:mm");
 }
+// tekst z panelu: pusta linia = nowy akapit
+function akapity_(t) {
+  return String(t).split(/\n\s*\n/).map(p => "<p>" + esc_(p.trim()).replace(/\n/g, "<br>") + "</p>").join("");
+}
 function tekst_(s, max) { return String(s || "").trim().slice(0, max); }
 function esc_(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -411,6 +457,8 @@ function json_(o) {
 
 // Uruchom raz ręcznie w edytorze (▶ test), żeby nadać uprawnienia i sprawdzić działanie.
 function test() {
+  wczytajUstawienia_();
+  Logger.log("Ustawienia: " + JSON.stringify(USTAWIENIA));
   const dzis = fmt_(new Date(), "yyyy-MM-dd");
   const zaTydzien = fmt_(new Date(Date.now() + 14 * 86400e3), "yyyy-MM-dd");
   Logger.log(JSON.stringify(wolneTerminy_(dzis, zaTydzien, "M"), null, 1));

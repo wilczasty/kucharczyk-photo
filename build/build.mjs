@@ -176,11 +176,15 @@ const cfgPatch = {
   contact: { email: strona.kontakt?.email || "", phone: strona.kontakt?.telefon || "", area: strona.kontakt?.obszar || "" },
   social: strona.social || {},
   pakiety: (oferta.pakiety || []).map(p => ({ id: p.id, nazwa: `Sesja ${p.id}`, minut: p.minut, cena: zl(p.cena) })),
+  najdalejDni: Number(readJson("content/rezerwacje.json").najdalej_dni) || 120,
 };
 fs.writeFileSync(path.join(OUT, "js/dane.js"),
   "/* Plik generowany przez build/build.mjs – nie edytuj, zmiany rób w panelu (content/, media/). */\n" +
   Object.entries(dane).map(([k, v]) => `window.${k} = ${JSON.stringify(v)};`).join("\n") +
   `\nObject.assign(window.SITE_CONFIG = window.SITE_CONFIG || {}, ${JSON.stringify(cfgPatch)});\n`);
+
+// ustawienia rezerwacji z panelu – czyta je skrypt Google (rezerwacje/Kod.gs) z opublikowanej strony
+fs.copyFileSync(path.join(ROOT, "content/rezerwacje.json"), path.join(OUT, "rezerwacje.json"));
 
 /* =========================================================
    6. podgląd linku (og:image): 1200×630 ze zdjęcia z panelu albo z banera

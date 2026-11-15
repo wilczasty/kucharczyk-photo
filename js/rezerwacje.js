@@ -21,7 +21,8 @@ window.initRezerwacje = function (root, cfg) {
 
   const dzis = new Date();
   const pierwszyMies = new Date(dzis.getFullYear(), dzis.getMonth(), 1);
-  const ostatniMies = new Date(dzis.getFullYear(), dzis.getMonth() + 4, 1);
+  const najdalej = new Date(dzis.getTime() + (cfg.najdalejDni || 120) * 864e5);   // z panelu (Rezerwacje – godziny i zasady)
+  const ostatniMies = new Date(najdalej.getFullYear(), najdalej.getMonth(), 1);
   const st = {
     pak: pakiety[Math.min(1, pakiety.length - 1)],   // domyślnie środkowy (M)
     mies: new Date(pierwszyMies),
