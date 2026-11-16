@@ -63,12 +63,16 @@ jednym przyciskiem w mailu. Zaplecze to darmowy skrypt Google Apps Script na Two
 - Wdrożenie krok po kroku: `rezerwacje/INSTRUKCJA.md`.
 - Adres skryptu wklejasz w `js/config.js` → `rezerwacjeUrl`. Gdy puste – zamiast kalendarza strona prosi o kontakt mailowy.
 - Podgląd wyglądu bez skryptu: dopisz do adresu strony `?rezerwacje=demo`.
-- Klient może sam odwołać rezerwację linkiem z maila (strona z przyciskiem „Tak, odwołuję”) – wydarzenie znika z kalendarza,
-  a Ty dostajesz maila.
-- **Godziny, dni, przerwy, limity i tekst autoodpowiedzi** – w panelu: „Rezerwacje – godziny i zasady”
-  (`content/rezerwacje.json`). Skrypt czyta je z opublikowanej strony (`…/rezerwacje.json`) z ok. 5-minutowym opóźnieniem;
+- Klient może sam odwołać rezerwację linkiem z maila – prowadzi on na stronę `odwolanie.html` w stylu strony
+  (podgląd: `odwolanie.html?demo=ok`, `?demo=zaPozno`, `?demo=brak`). Wydarzenie znika z kalendarza, a Ty dostajesz maila.
+- Potwierdzoną sesję odwołujesz tym samym linkiem z maila co przy decyzji (przycisk „Odwołaj sesję”, klient dostaje maila).
+- Co godzinę skrypt: wygasza nierozpatrzone prośby (domyślnie po 3 dniach, mail do klienta), raz dziennie przypomina
+  o prośbach czekających ponad dobę i wysyła klientom przypomnienie przed sesją (domyślnie 2 dni wcześniej).
+- **Godziny, dni, przerwy, limity, wstrzymanie rezerwacji, święta, wygasanie, przypomnienia i tekst autoodpowiedzi** – w panelu:
+  „Rezerwacje – godziny i zasady” (`content/rezerwacje.json`). **Nazwy i czas pakietów** – w „Oferta i cennik”.
+  Build dopisuje pakiety do opublikowanego `…/rezerwacje.json`, a skrypt czyta go z ok. 5-minutowym opóźnieniem;
   gdy strona nie odpowiada – ostatnie wczytane albo zapasowe z `USTAWIENIA` w `Kod.gs`.
-  Po zmianie domeny trzeba poprawić `stronaWww` w `Kod.gs` (i wdrożyć nową wersję).
+  Po zmianie domeny: właściwość skryptu `stronaWww` (bez zmiany kodu) – patrz `rezerwacje/INSTRUKCJA.md`, „Przeprowadzka”.
 
 ## Wydarzenia (warsztaty, plenery, mini-sesje)
 Dodaje się je w panelu (patrz wyżej). Zapisy: pole „Link do zapisów” (np. Formularz Google);

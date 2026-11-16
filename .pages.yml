@@ -175,7 +175,9 @@ content:
         list: true
       - name: pakiety
         label: Pakiety
-        description: Pakiety S, M i L są połączone z kalendarzem rezerwacji – czas sesji zmienia Adrian.
+        description: >-
+          Pakiety S, M i L są połączone z kalendarzem rezerwacji – nazwa i czas sesji trafiają też do kalendarza
+          i maili (zmiana działa po ok. 5 minutach od publikacji).
         type: object
         list:
           min: 3
@@ -193,8 +195,11 @@ content:
             type: string
           - name: minut
             label: Czas sesji (minuty)
+            description: Tyle czasu blokuje rezerwacja w kalendarzu (bez przerwy przed i po).
             type: number
-            readonly: true
+            options:
+              min: 15
+              max: 600
           - name: zdjec
             label: Liczba zdjęć
             type: number
@@ -285,6 +290,14 @@ content:
     path: content/rezerwacje.json
     format: json
     fields:
+      - name: przyjmuje_rezerwacje
+        label: Przyjmuję rezerwacje online
+        description: Odznacz na urlop albo przy pełnym grafiku – zamiast kalendarza pojawi się prośba o kontakt (i komunikat poniżej).
+        type: boolean
+      - name: komunikat_wstrzymania
+        label: Komunikat, gdy rezerwacje są wstrzymane (opcjonalnie)
+        description: Np. „Do 15 stycznia jestem na urlopie – terminy na luty podam po powrocie.” Pusta linia = nowy akapit.
+        type: text
       - name: dni_pracy
         label: Dni, w które można rezerwować sesje
         type: select
@@ -417,6 +430,38 @@ content:
         options:
           min: 0
           max: 720
+      - name: swieta_wolne
+        label: Bez rezerwacji w święta
+        description: Dni ustawowo wolne (Nowy Rok, Trzech Króli, Wielkanoc z poniedziałkiem, 1 i 3 maja, Zielone Świątki, Boże Ciało, 15 sierpnia, 1 i 11 listopada, Wigilia, 25–26 grudnia).
+        type: boolean
+      - name: calodniowe
+        label: Które wydarzenia całodniowe w Twoim kalendarzu blokują cały dzień
+        description: >-
+          Każde zwykłe wydarzenie (z godzinami) zawsze blokuje swój czas i przerwę. Wydarzenia całodniowe to często tylko
+          przypomnienia („Imieniny mamy”) – możesz sprawić, by dzień blokowały tylko te ze słowem urlop, wolne, zajęte lub niedostępna.
+        type: select
+        options:
+          values:
+            - name: wszystkie
+              label: wszystkie wydarzenia całodniowe
+            - name: urlop
+              label: tylko te ze słowem urlop / wolne / zajęte / niedostępna
+      - name: wygasanie_dni
+        label: Po ilu dniach nierozpatrzona prośba wygasa
+        description: >-
+          Prośba, której nie potwierdzisz ani nie odrzucisz, po tym czasie znika z kalendarza, a klient dostaje maila,
+          że termin został zwolniony. Codziennie rano dostajesz przypomnienie o prośbach czekających ponad dobę. 0 = nigdy nie wygasa.
+        type: number
+        options:
+          min: 0
+          max: 30
+      - name: przypomnienie_dni
+        label: Ile dni przed sesją klient dostaje przypomnienie
+        description: Mail z przypomnieniem wychodzi rano (ok. 9:00) – tylko do potwierdzonych sesji. 0 = bez przypomnień.
+        type: number
+        options:
+          min: 0
+          max: 14
       - name: autoodpowiedz
         label: Automatyczna odpowiedź na wiadomość z formularza kontaktowego
         description: Klient dostaje ją od razu po wysłaniu formularza. Pusta linia = nowy akapit. Na górze „Dziękuję, <imię>!”, na dole podpis.

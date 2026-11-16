@@ -41,9 +41,10 @@
         status.textContent = "Dziękuję! Wiadomość wysłana – potwierdzenie przyjdzie na Twojego maila.";
         status.classList.add("ok");
       } catch (err) {
-        status.textContent = err.message === "limit"
-          ? "Wysłano już kilka wiadomości z tego adresu – napisz proszę bezpośrednio na maila."
-          : "Ups, coś poszło nie tak. Napisz proszę bezpośrednio na maila.";
+        status.textContent = {
+          limit: "Wysłano już kilka wiadomości z tego adresu – napisz proszę bezpośrednio na maila.",
+          poczta: "Formularz chwilowo nie może wysłać wiadomości – napisz proszę bezpośrednio na maila albo spróbuj jutro.",
+        }[err.message] || "Ups, coś poszło nie tak. Napisz proszę bezpośrednio na maila.";
         status.classList.add("err");
       } finally {
         btn.disabled = false;
@@ -285,13 +286,11 @@
   czesc("rezerwacje", () => {
     const booking = $("#booking");
     const demoRez = new URLSearchParams(location.search).get("rezerwacje") === "demo";
-    if (!((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg))) {
-      const mail = (cfg.contact || {}).email;
-      booking.innerHTML = `
-        <div class="booking__placeholder">
-          <p class="script">rezerwacje chwilowo niedostępne</p>
-          <p>Napisz do mnie${mail ? ` na <a href="mailto:${esc(mail)}">${esc(mail)}</a>` : ""} albo przez <a href="#kontakt">formularz kontaktowy</a> – ustalimy termin.</p>
-        </div>`;
+    // „Przyjmuję rezerwacje online” odznaczone w panelu → komunikat z panelu zamiast kalendarza
+    const wstrzymane = cfg.rezerwacjeWstrzymane && !demoRez;
+    if (wstrzymane || !((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg))) {
+      if (window.pokazBrakRezerwacji) window.pokazBrakRezerwacji(booking, cfg, wstrzymane);
+      else booking.innerHTML = `<div class="booking__placeholder"><p>Rezerwacje chwilowo niedostępne – <a href="#kontakt">napisz do mnie</a>.</p></div>`;
     }
   });
 

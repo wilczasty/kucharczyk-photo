@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- SZABLON strony odwołania rezerwacji (link „Odwołaj rezerwację” w mailach) – wypełnia go build/build.mjs.
+     Dane rezerwacji pobiera js/odwolanie.js ze skryptu Google (rezerwacje/Kod.gs: ?akcja=info, POST akcja=odwolaj). -->
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <!-- adres zawiera kod rezerwacji – nie przekazujemy go innym stronom -->
+  <meta name="referrer" content="no-referrer">
+  <title>Odwołanie rezerwacji · Ewelina Kucharczyk Fotografia</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Cormorant+Garamond:wght@500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .odw { max-width: 36rem; margin: 0 auto; padding: clamp(2.5rem, 8vw, 5rem) 1.25rem; min-height: 100svh; }
+    .odw h1 { font-size: clamp(2rem, 6vw, 2.8rem); margin: .2em 0 .6em; }
+    .odw__termin { font-size: 1.15rem; margin: 0 0 1.5rem; }
+    .odw__termin b { font-weight: 500; }
+    .odw p { margin: 0 0 1.2rem; }
+    .odw h1:focus { outline: none; }
+    .odw .form { margin-top: 1.5rem; }
+    .odw .form p { margin: 0; }
+    .odw .odw__wroc { margin-top: 2.5rem; font-size: .9rem; }
+    .btn--warn { background: #a2412c; border-color: #a2412c; }
+  </style>
+</head>
+<body>
+<main class="odw" id="tresc">
+  <p class="script">rezerwacja</p>
+  <div id="odwolanie" aria-live="polite">
+    <h1>Odwołanie rezerwacji</h1>
+    <p data-wczytywanie>Wczytuję rezerwację…</p>
+    <noscript><p>Ta strona potrzebuje JavaScriptu. Możesz też po prostu odpowiedzieć na maila z potwierdzeniem rezerwacji.</p></noscript>
+  </div>
+  <p class="odw__wroc"><a href="{{strona.adres_glowny}}">← strona główna</a></p>
+</main>
+<script src="js/config.js"></script>
+<script src="js/dane.js"></script>
+<script src="js/wspolne.js"></script>
+<script src="js/odwolanie.js"></script>
+</body>
+</html>

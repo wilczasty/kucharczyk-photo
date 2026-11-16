@@ -258,19 +258,32 @@ const social = Object.fromEntries(Object.entries(strona.social || {}).map(([k, v
   if (v && !ok) warn(`link ${k} musi zaczynać się od https:// – pomijam`);
   return [k, ok];
 }).filter(([, v]) => v));
+const rez = readJson("content/rezerwacje.json");
+const przyjmuje = rez.przyjmuje_rezerwacje !== false;
+const pakietyRez = (oferta.pakiety || []).map(p => {
+  const minut = Number(p.minut);
+  if (!(minut >= 15 && minut <= 600)) warn(`pakiet ${p.id}: czas sesji musi być między 15 a 600 minut – kalendarz użyje poprzedniego`);
+  return { id: p.id, nazwa: String(p.nazwa || "").trim() || `Sesja ${p.id}`, minut };
+});
+if (przyjmuje && Array.isArray(rez.dni_pracy) && !rez.dni_pracy.length)
+  warn("rezerwacje: nie zaznaczono żadnego dnia pracy – kalendarz nie pokaże wolnych terminów (do wstrzymania służy „Przyjmuję rezerwacje online”)");
+if (rez.od && rez.do && rez.od >= rez.do)
+  warn(`rezerwacje: godzina „od” (${rez.od}) musi być wcześniejsza niż „do” (${rez.do}) – skrypt zostawi poprzednie godziny`);
 const cfgPatch = {
   contact: { email: strona.kontakt?.email || "", phone: strona.kontakt?.telefon || "", area: strona.kontakt?.obszar || "" },
   social,
-  pakiety: (oferta.pakiety || []).map(p => ({ id: p.id, nazwa: `Sesja ${p.id}`, minut: p.minut, cena: zl(p.cena) })),
-  najdalejDni: Number(readJson("content/rezerwacje.json").najdalej_dni) || 120,
+  pakiety: pakietyRez.map(p => ({ ...p, cena: zl((oferta.pakiety || []).find(o => o.id === p.id)?.cena) })),
+  najdalejDni: Number(rez.najdalej_dni) || 120,
+  rezerwacjeWstrzymane: !przyjmuje,
+  komunikatWstrzymania: String(rez.komunikat_wstrzymania || "").trim(),
 };
 fs.writeFileSync(path.join(OUT, "js/dane.js"),
   "/* Plik generowany przez build/build.mjs – nie edytuj, zmiany rób w panelu (content/, media/). */\n" +
   Object.entries(dane).map(([k, v]) => `window.${k} = ${JSON.stringify(v)};`).join("\n") +
   `\nObject.assign(window.SITE_CONFIG = window.SITE_CONFIG || {}, ${JSON.stringify(cfgPatch)});\n`);
 
-// ustawienia rezerwacji z panelu – czyta je skrypt Google (rezerwacje/Kod.gs) z opublikowanej strony
-fs.copyFileSync(path.join(ROOT, "content/rezerwacje.json"), path.join(OUT, "rezerwacje.json"));
+// ustawienia rezerwacji z panelu + pakiety z cennika – czyta je skrypt Google (rezerwacje/Kod.gs) z opublikowanej strony
+fs.writeFileSync(path.join(OUT, "rezerwacje.json"), JSON.stringify({ ...rez, pakiety: pakietyRez }, null, 1));
 
 /* =========================================================
    6. podgląd linku (og:image): 1200×630 ze zdjęcia z panelu albo z banera; ikona na telefon
@@ -314,7 +327,7 @@ const firma = {
 const jsonld = JSON.stringify(firma).replace(/</g, "\\u003c");
 
 /* =========================================================
-   7. index.html i 404.html z szablonów
+   7. index.html, 404.html i odwolanie.html z szablonów
    ========================================================= */
 const view = {
   strona: {
@@ -335,7 +348,7 @@ const view = {
   podglad_v: podgladV,
   jsonld,
 };
-for (const page of ["index.html", "404.html"])
+for (const page of ["index.html", "404.html", "odwolanie.html"])
   fs.writeFileSync(path.join(OUT, page), template(fs.readFileSync(path.join(ROOT, page), "utf8"), view));
 
 /* =========================================================
@@ -343,7 +356,7 @@ for (const page of ["index.html", "404.html"])
       GitHub Pages każe przeglądarce trzymać pliki 10 min – po zmianie pliku zmienia się adres,
       więc przeglądarka nie połączy nowego HTML ze starym JS/CSS.
    ========================================================= */
-for (const page of ["index.html", "polityka-prywatnosci.html"]) {
+for (const page of ["index.html", "polityka-prywatnosci.html", "odwolanie.html"]) {
   const f = path.join(OUT, page);
   fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace(/((?:href|src)=")((?:css|js)\/[^"?#]+)"/g, (m, pre, ref) => {
     const abs = path.join(OUT, ref);

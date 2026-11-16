@@ -10,6 +10,6 @@ window.SITE_CONFIG = {
   rezerwacjeUrl: "https://script.google.com/macros/s/AKfycbwAds39BD7ioJB6pcuLnEknvH4CIU9qmNqoCc6Nuio45PBGglH4N8YAg7yjN9b_X1ah/exec",
   // Pakiety rezerwacji (S/M/L: czas i cena), kontakt i social media pochodzą z panelu (content/*.json)
   // i są dopisywane do tych ustawień w js/dane.js przy budowaniu strony.
-  // Czas pakietu musi zgadzać się z USTAWIENIA.pakiety w rezerwacje/Kod.gs.
+  // Skrypt Google bierze nazwy i czas pakietów z tego samego cennika (opublikowany rezerwacje.json).
 
 };

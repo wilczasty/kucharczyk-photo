@@ -4,6 +4,22 @@
    adres w js/config.js → rezerwacjeUrl.
    Podgląd bez skryptu: adres strony + ?rezerwacje=demo
    ========================================================= */
+// Zamiast kalendarza: rezerwacje wstrzymane w panelu albo skrypt nieskonfigurowany.
+window.pokazBrakRezerwacji = function (root, cfg, wstrzymane) {
+  const { esc } = window.EK;
+  const mail = (cfg.contact || {}).email;
+  const tekst = wstrzymane && cfg.komunikatWstrzymania
+    ? cfg.komunikatWstrzymania.split(/\n\s*\n/).map(p => `<p>${esc(p.trim()).replace(/\n/g, "<br>")}</p>`).join("")
+    : "";
+  root.classList.remove("rez");
+  root.innerHTML = `
+    <div class="booking__placeholder">
+      <p class="script">${wstrzymane ? "rezerwacje online wstrzymane" : "rezerwacje chwilowo niedostępne"}</p>
+      ${tekst}
+      <p>Napisz do mnie${mail ? ` na <a href="mailto:${esc(mail)}">${esc(mail)}</a>` : ""} albo przez <a href="#kontakt">formularz kontaktowy</a> – ustalimy termin.</p>
+    </div>`;
+};
+
 window.initRezerwacje = function (root, cfg) {
   const demo = new URLSearchParams(location.search).get("rezerwacje") === "demo";
   const api = cfg.rezerwacjeUrl;
@@ -72,7 +88,7 @@ window.initRezerwacje = function (root, cfg) {
     ${demo ? '<p class="rez__demo">Podgląd z przykładowymi terminami – nic nie zostanie zapisane.</p>' : ""}
     <div class="rez__pak" role="radiogroup" aria-label="Pakiet">
       ${pakiety.map(p => `<button type="button" role="radio" data-pak="${esc(p.id)}">
-        <b>${esc(p.nazwa)}</b><span>${p.minut} min${p.cena ? " · " + esc(p.cena) : ""}</span></button>`).join("")}
+        <b>${esc(p.nazwa)}</b><span>${p.minut}\u00a0min${p.cena ? " · " + esc(p.cena).replace(/ /g, "\u00a0") : ""}</span></button>`).join("")}
     </div>
     <div class="rez__grid">
       <div class="rez__cal">
@@ -125,6 +141,7 @@ window.initRezerwacje = function (root, cfg) {
       dni = await pobierz(st.pak, st.mies);
     } catch (e) {
       if (moja !== wersja) return;
+      if (e.message === "wstrzymane") return window.pokazBrakRezerwacji(root, cfg, true);
       cal.classList.remove("is-loading");
       days.innerHTML = "";
       boczny(`<p class="rez__hint rez__err">Nie udało się wczytać wolnych terminów. Odśwież stronę za chwilę albo <a href="#kontakt">napisz do mnie</a>.</p>`);
@@ -219,6 +236,9 @@ window.initRezerwacje = function (root, cfg) {
         termin: "Ktoś właśnie zarezerwował ten termin. Wybierz proszę inną godzinę.",
         limit: "Z tego adresu wysłano już kilka próśb. Napisz do mnie bezpośrednio, chętnie pomogę.",
         dane: "Sprawdź proszę wpisane dane.",
+        zajete: "Serwer jest chwilowo zajęty – spróbuj ponownie za chwilę.",
+        poczta: "Nie mogę teraz przyjąć prośby (chwilowy problem z wysyłką maili). Spróbuj proszę za kilka godzin albo napisz do mnie.",
+        wstrzymane: "Rezerwacje online są chwilowo wstrzymane – napisz do mnie, ustalimy termin.",
       };
       status.textContent = KOMUNIKATY[wynik.blad] || "Ups, coś poszło nie tak. Spróbuj ponownie albo napisz do mnie maila.";
       status.classList.add("err");
