@@ -1,10 +1,12 @@
 <!doctype html>
 <!-- SZABLON: pola w podwójnych klamrach wypełnia build/build.mjs treściami z content/. Gotowa strona powstaje w _site/. -->
-<html lang="pl">
+<html lang="pl" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ewelina Kucharczyk · Fotografia</title>
+  <!-- klasa „js” włącza animacje pojawiania się; bez JavaScriptu treść jest od razu widoczna -->
+  <script>document.documentElement.className = "js";</script>
+  <title>{{strona.tytul_strony}}</title>
   <meta name="description" content="{{strona.opis_google}}">
   <!-- podgląd linku (Facebook, Messenger, WhatsApp…) – zdjęcie i adres z panelu, obrazek 1200×630 robi build -->
   {{#strona.adres?}}<link rel="canonical" href="{{strona.adres}}">
@@ -19,7 +21,10 @@
   <meta property="og:locale" content="pl_PL">
   <meta property="og:site_name" content="Ewelina Kucharczyk · Fotografia">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23a47551'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='28' fill='%23faf6ef' text-anchor='middle'%3EEK%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <!-- dane firmy dla Google (generuje build z panelu: kontakt, social, ceny pakietów) -->
+  <script type="application/ld+json">{{{jsonld}}}</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +32,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<a class="skip-link" href="#tresc">Przejdź do treści</a>
 
 <!-- ============ NAWIGACJA ============ -->
 <header class="nav" id="nav">
@@ -48,9 +54,10 @@
   </nav>
 </header>
 
+<main id="tresc" tabindex="-1">
 <!-- ============ HERO ============ -->
 <section class="hero" id="start">
-  <div class="hero__bg" style="background-image:url('{{strona.hero.zdjecie}}')"></div>
+  <img class="hero__bg" src="{{strona.hero.zdjecie}}"{{#strona.hero.srcset?}} srcset="{{strona.hero.srcset}}" sizes="100vw"{{/strona.hero.srcset?}} alt="" fetchpriority="high">
   <div class="hero__content">
     <p class="script">{{strona.hero.napis}}</p>
     <h1>{{strona.hero.tytul}}</h1>
@@ -90,8 +97,11 @@
       <h2>{{galeria.tytul}}</h2>
       <p class="section__sub">{{galeria.podtytul}}</p>
     </header>
-    <div class="filters" role="tablist" id="filters"></div>
+    <div class="filters" id="filters" role="group" aria-label="Kategorie zdjęć"></div>
     <div class="gallery" id="gallery"></div>
+    <div class="gallery__more" id="gallery-more" hidden>
+      <button type="button" class="btn btn--outline">Pokaż więcej zdjęć</button>
+    </div>
   </div>
 </section>
 
@@ -184,10 +194,11 @@
       <div class="contact__social social-icons social-icons--labels" data-social></div>
     </div>
 
-    <form class="form reveal" id="contact-form" novalidate>
+    <!-- method/action: gdyby JavaScript zawiódł, dane nie trafią do paska adresu (wysyłkę robi js/main.js) -->
+    <form class="form reveal" id="contact-form" method="post" action="#" novalidate>
       <div class="form__row">
-        <label>Imię<input type="text" name="name" required autocomplete="name"></label>
-        <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
+        <label>Imię<input type="text" name="name" required autocomplete="name" maxlength="80"></label>
+        <label>E-mail<input type="email" name="email" required autocomplete="email" maxlength="120"></label>
       </div>
       <label>Rodzaj sesji
         <select name="session_type">
@@ -197,7 +208,7 @@
           <option>Inne</option>
         </select>
       </label>
-      <label>Wiadomość<textarea name="message" rows="5" required></textarea></label>
+      <label>Wiadomość<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
       <label class="form__check">
         <input type="checkbox" name="rodo" required>
         <span>Wyrażam zgodę na przetwarzanie moich danych w celu odpowiedzi na wiadomość (<a href="polityka-prywatnosci.html" target="_blank">polityka prywatności</a>).</span>
@@ -286,23 +297,28 @@
 </script>
 <script src="https://groot.mailerlite.com/js/w/webforms.min.js?v83147fa8ce2d95cb73ece7f28b469519" defer></script>
 <script>fetch("https://assets.mailerlite.com/jsonp/2792924/forms/204026154199287504/takel").catch(() => {});</script>
+</main>
 
 <footer class="footer">
   <p class="script">dziękuję, że jesteś</p>
   <div class="footer__social social-icons" data-social></div>
-  <p class="footer__copy">© <span id="year"></span> Ewelina Kucharczyk Fotografia · Wszystkie zdjęcia chronione prawem autorskim</p>
+  <p class="footer__copy">© <span id="year"></span> Ewelina Kucharczyk Fotografia · Wszystkie zdjęcia chronione prawem autorskim · <a href="polityka-prywatnosci.html">Polityka prywatności</a></p>
 </footer>
 
 <!-- ============ LIGHTBOX ============ -->
-<div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Podgląd zdjęcia">
-  <button class="lightbox__close" aria-label="Zamknij">×</button>
-  <button class="lightbox__nav lightbox__prev" aria-label="Poprzednie">‹</button>
-  <img alt="">
-  <button class="lightbox__nav lightbox__next" aria-label="Następne">›</button>
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia">
+  <button type="button" class="lightbox__close" aria-label="Zamknij">×</button>
+  <button type="button" class="lightbox__nav lightbox__prev" aria-label="Poprzednie zdjęcie">‹</button>
+  <figure class="lightbox__fig">
+    <img alt="">
+    <figcaption class="lightbox__caption script"></figcaption>
+  </figure>
+  <button type="button" class="lightbox__nav lightbox__next" aria-label="Następne zdjęcie">›</button>
 </div>
 
 <script src="js/config.js"></script>
 <script src="js/dane.js"></script>
+<script src="js/wspolne.js"></script>
 <script src="js/rezerwacje.js"></script>
 <script src="js/main.js"></script>
 </body>

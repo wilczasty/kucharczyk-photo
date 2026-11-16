@@ -23,7 +23,9 @@ media/strona/, media/wydarzenia/ – zdjęcia do „O mnie” i wydarzeń
 build/build.mjs             – budowanie strony do _site/ (teksty, lista zdjęć, zmniejszanie zdjęć)
 .github/workflows/strona.yml – automatyczne budowanie i publikacja po każdej zmianie
 js/config.js                – ustawienia techniczne: adres skryptu (rezerwacje + formularz)
-js/main.js, js/rezerwacje.js – logika (nie trzeba ruszać)
+js/main.js, js/rezerwacje.js – logika (nie trzeba ruszać); js/wspolne.js – wspólne drobiazgi obu plików
+404.html                    – strona „nie ma takiej strony” (szablon, link na stronę główną z panelu)
+favicon.svg                 – ikona karty; build robi z niej ikonę na telefon (apple-touch-icon.png)
 css/style.css               – wygląd (kolory na górze pliku, sekcja :root)
 polityka-prywatnosci.html   – RODO (uzupełnij dane!)
 ```
@@ -39,7 +41,10 @@ a po ok. 1–2 minutach strona aktualizuje się sama (postęp: zakładka **Actio
   - nowy folder = nowy przycisk kategorii (pusty folder się nie wyświetla),
   - liczba na początku nazwy ustala kolejność i nie jest wyświetlana (`1 Rodzinne i dziecięce`),
   - zdjęcia można wgrywać prosto z aparatu – przy publikacji są zmniejszane (2000 px) i tracą dane EXIF/GPS,
-  - nowe zdjęcia pojawiają się na początku galerii.
+  - format: JPG (PNG bez przezroczystości build sam zamienia na JPG). Zdjęcia HEIC z iPhone'a są pomijane –
+    na iPhonie: Ustawienia → Aparat → Formaty → „Najbardziej zgodne”,
+  - nowe zdjęcia pojawiają się na początku galerii; przeniesione do innego folderu zostają na swoim miejscu
+    (ale podpis trzeba wtedy wybrać ponownie w „Portfolio – podpisy i kolejność”).
 - **Portfolio – podpisy i kolejność** – opcjonalny podpis zdjęcia i przypinanie na początek.
 
 > ⚠ Repozytorium jest publiczne, a oryginał wgranego pliku zostaje w historii. Zdjęcia z telefonu
@@ -80,6 +85,12 @@ Obsługuje go ten sam skrypt co rezerwacje (`rezerwacje/Kod.gs`, funkcja `kontak
 ## Krok 6 – publikacja (GitHub Pages + GitHub Actions)
 Repo: https://github.com/wilczasty/kucharczyk-photo, **Settings → Pages → Source: GitHub Actions**.
 Każdy push / zapis w panelu uruchamia `.github/workflows/strona.yml`: `npm ci` → `npm run build` → publikacja `_site/`.
+
+**Gdy zmiana z panelu nie pojawia się na stronie po ok. 5 minutach** (odśwież przez Ctrl+F5):
+- uszkodzone zdjęcie albo nieobsługiwany plik nie zatrzymuje już publikacji – jest pomijany, a ostrzeżenie widać
+  w zakładce **Actions** → ostatni przebieg → podsumowanie („Ostrzeżenia”),
+- jeśli przebieg ma czerwony krzyżyk – publikacja się nie udała i strona została w poprzedniej wersji.
+  Maila o tym dostaje tylko właściciel repozytorium (konto `wilczasty`), więc **Ewelina: napisz wtedy do Adriana**.
 
 ## Krok 7 – własna domena (opcjonalnie)
 Kup domenę `.pl` (np. OVH, home.pl, nazwa.pl – pierwszy rok często za kilka zł, potem sprawdź cenę odnowienia!).

@@ -74,6 +74,7 @@ content:
           message: "Wpisz godzinę w formacie GG:MM, np. 14:00"
       - name: opis
         label: Opis
+        description: Pusta linia = nowy akapit.
         type: text
       - name: miejsce
         label: Miejsce
@@ -86,6 +87,10 @@ content:
         label: Liczba miejsc
         description: "Np. 10 osób"
         type: string
+      - name: brak_miejsc
+        label: Brak wolnych miejsc
+        description: Zaznacz, gdy komplet – na stronie pojawi się „brak miejsc”, a przycisk zmieni się na „Lista rezerwowa”.
+        type: boolean
       - name: zdjecie
         label: Zdjęcie
         description: >-
@@ -111,8 +116,11 @@ content:
               label: Pokaż całe zdjęcie (bez przycinania, z tłem)
       - name: zapisy
         label: Link do zapisów (opcjonalnie)
-        description: Puste = przycisk „Zapisz się” otwiera formularz kontaktowy z gotową wiadomością.
+        description: Pełny adres zaczynający się od https:// (np. Formularz Google). Puste = przycisk „Zapisz się” otwiera formularz kontaktowy z gotową wiadomością.
         type: string
+        pattern:
+          regex: "^(|https://\\S+)$"
+          message: "Link musi zaczynać się od https:// (albo zostaw puste)"
 
   - name: galeria
     label: Portfolio – podpisy i kolejność
@@ -130,7 +138,9 @@ content:
         label: Podpisy zdjęć
         description: >-
           Nie trzeba tu niczego dodawać – zdjęcie wgrane do folderu w „Portfolio” samo pojawia się w galerii
-          (najnowsze na początku). Tu możesz dodać podpis (widoczny po najechaniu) albo przypiąć zdjęcie na górę.
+          (najnowsze na początku). Tu możesz dodać podpis (na komputerze widoczny po najechaniu myszą, na telefonie od razu)
+          albo przypiąć zdjęcie na górę. Po przeniesieniu zdjęcia do innego folderu wybierz je tu ponownie – podpis jest
+          przypięty do starego miejsca.
         type: object
         list:
           collapsible:
@@ -417,6 +427,12 @@ content:
     path: content/strona.json
     format: json
     fields:
+      - name: tytul_strony
+        label: Tytuł strony w Google
+        description: >-
+          Niebieski nagłówek w wynikach wyszukiwania i nazwa karty w przeglądarce (ok. 60 znaków). Warto wpisać słowa,
+          których szukają klienci, np. „Ewelina Kucharczyk – fotograf rodzinny i portretowy · Kolbudy, Trójmiasto”.
+        type: string
       - name: opis_google
         label: Opis strony w Google
         description: Krótki opis (ok. 150 znaków) widoczny w wynikach wyszukiwania i pod podglądem linku na Facebooku.
@@ -452,6 +468,7 @@ content:
             description: >-
               Poziome, min. 2000 px szerokości, najważniejsze w środku. Zdjęcie wypełnia cały ekran:
               na komputerze widać prawie całe, na telefonie (ekran pionowy) tylko pas ze środka.
+              Puste = pierwsze zdjęcie z portfolio.
             type: image
             options:
               media: portfolio

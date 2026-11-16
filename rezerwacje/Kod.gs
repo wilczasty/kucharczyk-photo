@@ -25,7 +25,7 @@ const USTAWIENIA = {
   najwczesniejGodzin: 48,        // najkrótszy czas od teraz do sesji
   najdalejDni: 120,              // jak daleko do przodu można rezerwować
   odwolanieNajpozniejGodzin: 48, // do ilu godzin przed sesją klient może sam odwołać (0 = do samego początku)
-  pakiety: {                     // muszą zgadzać się z js/config.js
+  pakiety: {                     // muszą zgadzać się z content/oferta.json (pole „minut”)
     S: { nazwa: "Sesja S", minut: 30 },
     M: { nazwa: "Sesja M", minut: 50 },
     L: { nazwa: "Sesja L", minut: 90 },

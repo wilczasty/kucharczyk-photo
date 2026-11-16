@@ -7,7 +7,9 @@
 // - teksty z content/*.json wstawia do index.html (prosty szablon {{…}}),
 // - kategorie portfolio = podfoldery media/portfolio/ (liczba na początku nazwy = kolejność, nie wyświetla się),
 // - zdjęcia zmniejsza (maks. 2000 px), usuwa z nich dane EXIF/GPS i robi miniatury do galerii
-//   (jeśli moduł "sharp" nie jest zainstalowany – kopiuje bez zmian).
+//   (jeśli moduł "sharp" nie jest zainstalowany – kopiuje bez zmian),
+// - PNG bez przezroczystości zamienia na JPEG (wielokrotnie mniejsze pliki),
+// - uszkodzone albo nieobsługiwane pliki pomija z ostrzeżeniem – nie zatrzymują publikacji.
 // =========================================================
 import fs from "node:fs";
 import path from "node:path";
@@ -17,20 +19,28 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "_site");
-const STATIC = ["css", "js", "polityka-prywatnosci.html"];
+const STATIC = ["css", "js", "polityka-prywatnosci.html", "favicon.svg"];
 const IMG = /\.(jpe?g|png|webp)$/i;
 const COPY_ONLY = /\.(svg|gif|avif)$/i;
-const MAX = 2000, THUMB = 900;
+const UNSUPPORTED = /\.(heic|heif|tiff?|bmp|dng|raw|cr2|cr3|nef|arw|orf|rw2|psd)$/i;
+const MAX = 2000, THUMB = 900, HERO_SMALL = 1000;
+
+/* ---------- ostrzeżenia: konsola + adnotacje i podsumowanie w GitHub Actions ---------- */
+const warnings = [];
+const warn = msg => {
+  warnings.push(msg);
+  console.warn(`⚠ ${msg}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::warning::${msg.replace(/\r?\n/g, " ")}`);
+};
 
 let sharp = null;
-try { sharp = (await import("sharp")).default; } catch { console.warn("⚠ brak modułu sharp – zdjęcia kopiowane bez zmniejszania"); }
+try { sharp = (await import("sharp")).default; } catch { warn("brak modułu sharp – zdjęcia kopiowane bez zmniejszania"); }
 
 const readJson = rel => JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8"));
 const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const urlPath = p => p.split("/").map(encodeURIComponent).join("/");
 // ścieżka z panelu (np. "/media/x.jpg" albo "media/x%20y.jpg") → "media/x y.jpg"
 const normPath = p => { if (!p) return ""; p = String(p).trim().replace(/^\.?\//, ""); try { p = decodeURIComponent(p); } catch {} return p.normalize("NFC"); };
-const mediaUrl = p => (p ? urlPath(normPath(p)) : "");
 // tekst wielolinijkowy: pusta linia = nowy akapit, **pogrubienie**
 const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
 const paragraphs = t => String(t ?? "").trim().split(/\n\s*\n/).filter(Boolean).map(p => `<p>${inline(p.trim())}</p>`).join("\n      ");
@@ -41,6 +51,7 @@ const walk = dir => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: tr
   .filter(d => !d.name.startsWith(".") && !d.name.startsWith("_"))
   .flatMap(d => d.isDirectory() ? walk(path.join(dir, d.name)) : [path.join(dir, d.name)]) : [];
 const rel = abs => path.relative(ROOT, abs).split(path.sep).join("/").normalize("NFC");
+const httpsOnly = u => (/^https:\/\/[^\s"'<>]+$/i.test(String(u ?? "").trim()) ? String(u).trim() : "");
 
 /* ---------- mini-szablon w stylu Mustache: {{x}}, {{{x}}} (bez escapowania), {{#lista}}…{{/lista}}, {{#x?}}…{{/x?}}, {{^x}}…{{/x}} ---------- */
 function template(src, view) {
@@ -78,31 +89,44 @@ function template(src, view) {
   return run(root.children, [view]);
 }
 
-/* ---------- daty dodania plików (nowsze zdjęcia na początku galerii) ---------- */
+/* ---------- daty dodania plików (nowsze zdjęcia na początku galerii) ----------
+   Przeniesienie zdjęcia do innego folderu (zmiana nazwy w gicie) zachowuje datę pierwotnego dodania,
+   więc przeniesione zdjęcie nie wskakuje na początek galerii. */
 function addedDates(dir) {
-  const map = new Map();
+  const added = new Map(), movedFrom = new Map();
   try {
-    const out = execFileSync("git", ["-c", "core.quotepath=off", "log", "--diff-filter=A", "--name-only", "--format=@%ct", "--", dir],
+    const out = execFileSync("git", ["-c", "core.quotepath=off", "log", "-M", "--diff-filter=AR", "--name-status", "--format=@%ct", "--", dir],
       { cwd: ROOT, encoding: "utf8", maxBuffer: 64 << 20 });
     let t = 0;
     for (const line of out.split("\n")) {
-      if (line.startsWith("@")) t = +line.slice(1);
-      else if (line.trim()) { const p = line.trim().normalize("NFC"); if (!map.has(p)) map.set(p, t); }
+      if (line.startsWith("@")) { t = +line.slice(1); continue; }
+      const [status, a, b] = line.split("\t");
+      if (!status || !a) continue;
+      if (status[0] === "A") { const p = a.normalize("NFC"); if (!added.has(p)) added.set(p, t); }
+      else if (status[0] === "R" && b) { const to = b.normalize("NFC"); if (!movedFrom.has(to)) movedFrom.set(to, a.normalize("NFC")); }
     }
-  } catch { console.warn("⚠ brak historii gita – kolejność zdjęć wg podpisów i nazw"); }
-  return map;
+  } catch { warn("brak historii gita – kolejność zdjęć wg podpisów i nazw"); }
+  const date = (p, depth = 0) => added.get(p) ?? (depth < 50 && movedFrom.has(p) ? date(movedFrom.get(p), depth + 1) : undefined);
+  return date;
 }
 
 /* ---------- zdjęcia ---------- */
-async function processImage(srcAbs, destAbs, width) {
+// PNG bez przezroczystości → JPEG (zdjęcia eksportowane jako PNG ważą wielokrotnie więcej)
+const renamed = new Map();
+const outRel = r => renamed.get(r) || r;
+const mediaUrl = p => (p ? urlPath(outRel(normPath(p))) : "");
+const mediaExists = p => !!p && fs.existsSync(path.join(ROOT, normPath(p)));
+
+async function processImage(srcAbs, destAbs, width, toJpeg = false) {
   fs.mkdirSync(path.dirname(destAbs), { recursive: true });
-  if (!sharp || COPY_ONLY.test(srcAbs) || !IMG.test(srcAbs)) { fs.copyFileSync(srcAbs, destAbs); return; }
+  if (!sharp || COPY_ONLY.test(srcAbs) || !IMG.test(srcAbs)) { fs.copyFileSync(srcAbs, destAbs); return null; }
   let img = sharp(srcAbs, { failOn: "none" }).rotate()   // obrót wg EXIF, potem metadane są usuwane
     .resize({ width, height: width, fit: "inside", withoutEnlargement: true });
-  if (/\.png$/i.test(srcAbs)) img = img.png({ compressionLevel: 9 });
+  if (toJpeg) img = img.flatten({ background: "#ffffff" }).jpeg({ quality: 82, mozjpeg: true });
+  else if (/\.png$/i.test(srcAbs)) img = img.png({ compressionLevel: 9 });
   else if (/\.webp$/i.test(srcAbs)) img = img.webp({ quality: 82 });
   else img = img.jpeg({ quality: 82, mozjpeg: true });
-  await img.toFile(destAbs);
+  return img.toFile(destAbs);    // { width, height, … }
 }
 async function pool(tasks, n = 4) {
   const it = tasks[Symbol.iterator]();
@@ -125,21 +149,22 @@ const oMnie = readJson("content/o-mnie.json");
 const oferta = readJson("content/oferta.json");
 const galeria = readJson("content/galeria.json");
 const wydarzenia = walk(path.join(ROOT, "content/wydarzenia")).filter(f => f.endsWith(".json"))
-  .map(f => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch (e) { console.warn(`⚠ pomijam ${rel(f)}: ${e.message}`); return null; } })
-  .filter(e => e && e.data && e.tytul)
-  .map(e => ({ ...e, data: String(e.data).slice(0, 10), zdjecie: mediaUrl(e.zdjecie) }));
+  .map(f => { try { return { ...JSON.parse(fs.readFileSync(f, "utf8")), plik: rel(f) }; } catch (e) { warn(`pomijam ${rel(f)}: ${e.message}`); return null; } })
+  .filter(e => e && e.data && e.tytul);
 
 /* =========================================================
    3. portfolio z folderów
    ========================================================= */
 const PORT = path.join(ROOT, "media/portfolio");
-const dates = addedDates("media/portfolio");
+const dateOf = addedDates("media/portfolio");
 const opisy = new Map((galeria.zdjecia || []).map((z, i) => [normPath(z.zdjecie), { ...z, i }]));
+for (const p of opisy.keys()) if (p && !fs.existsSync(path.join(ROOT, p)))
+  warn(`podpis w „Portfolio – podpisy i kolejność” wskazuje zdjęcie, którego nie ma (przeniesione albo usunięte?): ${p}`);
 const now = Math.floor(Date.now() / 1000);
 const catDirs = fs.existsSync(PORT) ? fs.readdirSync(PORT, { withFileTypes: true })
   .filter(d => d.isDirectory() && !d.name.startsWith(".") && !d.name.startsWith("_")).map(d => d.name).sort(plCompare) : [];
 const categories = {};
-const photos = [];
+let photos = [];
 const usedSlugs = new Set();
 for (const dir of catDirs) {
   const name = dir.normalize("NFC").replace(/^\d+[\s._-]*/, "").replace(/[-_]+/g, " ").trim() || dir;
@@ -150,31 +175,92 @@ for (const dir of catDirs) {
   for (const f of files) photos.push({ file: f, rel: rel(f), category: key });
 }
 for (const f of walk(PORT).filter(f => path.dirname(f) === PORT && (IMG.test(f) || COPY_ONLY.test(f)))) photos.push({ file: f, rel: rel(f), category: "" });
-for (const p of photos) { const o = opisy.get(p.rel); p.caption = o?.podpis || ""; p.top = !!o?.na_gore; p.order = o ? o.i : Infinity; p.date = dates.get(p.rel) ?? now; }
+for (const p of photos) { const o = opisy.get(p.rel); p.caption = o?.podpis || ""; p.top = !!o?.na_gore; p.order = o ? o.i : Infinity; p.date = dateOf(p.rel) ?? now; }
 photos.sort((a, b) => (b.top - a.top) || (a.top && b.top ? a.order - b.order : 0) || (b.date - a.date) || (a.order - b.order) || plCompare(a.rel, b.rel));
 
 /* =========================================================
    4. obrazy: media/ → _site/media/ (zmniejszone), miniatury portfolio → _site/media/_miniatury/
    ========================================================= */
-const thumbRel = r => "media/_miniatury/" + r.slice("media/".length);
-const tasks = walk(path.join(ROOT, "media")).filter(f => IMG.test(f) || COPY_ONLY.test(f)).map(f => () => processImage(f, path.join(OUT, rel(f)), MAX));
-for (const p of photos) if (IMG.test(p.file)) tasks.push(() => processImage(p.file, path.join(OUT, thumbRel(p.rel)), THUMB));
+const allMedia = walk(path.join(ROOT, "media"));
+for (const f of allMedia) if (UNSUPPORTED.test(f))
+  warn(`pomijam ${rel(f)} – tego formatu przeglądarki nie wyświetlą. Zapisz zdjęcie jako JPG (np. z iPhone'a: Ustawienia → Aparat → Formaty → „Najbardziej zgodne”).`);
+const mediaFiles = allMedia.filter(f => IMG.test(f) || COPY_ONLY.test(f));
+if (sharp) for (const f of mediaFiles.filter(f => /\.png$/i.test(f))) {
+  try { if (!(await sharp(f).metadata()).hasAlpha) renamed.set(rel(f), rel(f).replace(/\.png$/i, ".jpg")); } catch {}
+}
+const failed = new Set();
+const thumbInfo = new Map();
+const thumbRel = r => "media/_miniatury/" + outRel(r).slice("media/".length);
+const safely = (r, fn) => async () => {
+  try { return await fn(); } catch (e) {
+    if (!failed.has(r)) warn(`pomijam uszkodzone albo nieczytelne zdjęcie ${r}: ${e.message}`);
+    failed.add(r);
+  }
+};
+const tasks = mediaFiles.map(f => safely(rel(f), () => processImage(f, path.join(OUT, outRel(rel(f))), MAX, renamed.has(rel(f)))));
+for (const p of photos) if (IMG.test(p.file)) tasks.push(safely(p.rel, async () => {
+  const info = await processImage(p.file, path.join(OUT, thumbRel(p.rel)), THUMB, renamed.has(p.rel));
+  if (info) thumbInfo.set(p.rel, info);
+}));
 await pool(tasks);
+photos = photos.filter(p => !failed.has(p.rel));
+
+/* ---------- zdjęcia z panelu: brak albo pusty wybór → zapasowe + ostrzeżenie ---------- */
+const firstPhoto = photos.find(p => IMG.test(p.file))?.rel || "";
+let heroSrc = normPath(strona.hero?.zdjecie);
+if (!mediaExists(heroSrc) || failed.has(heroSrc)) {
+  warn(`baner: ${heroSrc ? `brak zdjęcia ${heroSrc}` : "nie wybrano zdjęcia"} – używam pierwszego zdjęcia z portfolio`);
+  heroSrc = firstPhoto;
+}
+let aboutSrc = normPath(oMnie.zdjecie);
+if (!mediaExists(aboutSrc) || failed.has(aboutSrc)) {
+  warn(`„O mnie”: ${aboutSrc ? `brak zdjęcia ${aboutSrc}` : "nie wybrano zdjęcia"} – używam zdjęcia z banera`);
+  aboutSrc = heroSrc;
+}
+// baner na telefon: mniejsza wersja (ten sam kadr, ~1000 px zamiast 2000 px)
+let heroSrcset = "";
+if (sharp && heroSrc && IMG.test(heroSrc)) {
+  try {
+    const big = await sharp(path.join(OUT, outRel(heroSrc))).metadata();
+    if (big.width > HERO_SMALL * 1.3) {
+      const smallRel = "media/_male/" + outRel(heroSrc).slice("media/".length);
+      const info = await processImage(path.join(ROOT, heroSrc), path.join(OUT, smallRel), HERO_SMALL, renamed.has(heroSrc));
+      heroSrcset = `${urlPath(smallRel)} ${info.width}w, ${mediaUrl(heroSrc)} ${big.width}w`;
+    }
+  } catch (e) { warn(`baner: nie udało się zrobić wersji na telefon (${e.message})`); }
+}
 
 /* =========================================================
    5. dane dla JS (portfolio, wydarzenia, kontakt, pakiety rezerwacji)
    ========================================================= */
 const zl = n => `${n} zł`;
 const dane = {
-  CATEGORIES: categories,
-  PORTFOLIO: photos.map(p => ({
-    src: urlPath(p.rel), thumb: IMG.test(p.file) ? urlPath(thumbRel(p.rel)) : undefined, category: p.category, caption: p.caption,
-  })),
-  WYDARZENIA: wydarzenia,
+  CATEGORIES: Object.fromEntries(Object.entries(categories).filter(([k]) => photos.some(p => p.category === k))),
+  PORTFOLIO: photos.map(p => {
+    const t = thumbInfo.get(p.rel);
+    return {
+      src: urlPath(outRel(p.rel)), thumb: t ? urlPath(thumbRel(p.rel)) : undefined,
+      w: t?.width, h: t?.height, category: p.category, caption: p.caption,
+    };
+  }),
+  WYDARZENIA: wydarzenia.map(e => {
+    const zapisy = httpsOnly(e.zapisy);
+    if (e.zapisy && !zapisy) warn(`wydarzenie „${e.tytul}”: link do zapisów musi zaczynać się od https:// – przycisk otworzy formularz kontaktowy`);
+    return {
+      tytul: e.tytul, data: String(e.data).slice(0, 10), od: e.od || "", do: e.do || "",
+      opis: e.opis || "", opis_html: paragraphs(e.opis), miejsce: e.miejsce || "", cena: e.cena || "", miejsca: e.miejsca || "",
+      brak_miejsc: !!e.brak_miejsc, zdjecie: mediaUrl(e.zdjecie), kadrowanie: e.kadrowanie || "", zapisy,
+    };
+  }),
 };
+const social = Object.fromEntries(Object.entries(strona.social || {}).map(([k, v]) => {
+  const ok = httpsOnly(v);
+  if (v && !ok) warn(`link ${k} musi zaczynać się od https:// – pomijam`);
+  return [k, ok];
+}).filter(([, v]) => v));
 const cfgPatch = {
   contact: { email: strona.kontakt?.email || "", phone: strona.kontakt?.telefon || "", area: strona.kontakt?.obszar || "" },
-  social: strona.social || {},
+  social,
   pakiety: (oferta.pakiety || []).map(p => ({ id: p.id, nazwa: `Sesja ${p.id}`, minut: p.minut, cena: zl(p.cena) })),
   najdalejDni: Number(readJson("content/rezerwacje.json").najdalej_dni) || 120,
 };
@@ -187,28 +273,58 @@ fs.writeFileSync(path.join(OUT, "js/dane.js"),
 fs.copyFileSync(path.join(ROOT, "content/rezerwacje.json"), path.join(OUT, "rezerwacje.json"));
 
 /* =========================================================
-   6. podgląd linku (og:image): 1200×630 ze zdjęcia z panelu albo z banera
+   6. podgląd linku (og:image): 1200×630 ze zdjęcia z panelu albo z banera; ikona na telefon
    ========================================================= */
 const hash = buf => crypto.createHash("sha1").update(buf).digest("hex").slice(0, 8);
 let podgladV = "";
 {
-  const src = normPath(strona.podglad_zdjecie) || normPath(strona.hero?.zdjecie);
+  const src = mediaExists(strona.podglad_zdjecie) ? normPath(strona.podglad_zdjecie) : heroSrc;
   const srcAbs = src && path.join(ROOT, src);
   const dest = path.join(OUT, "media/_podglad.jpg");
-  if (srcAbs && fs.existsSync(srcAbs) && sharp && IMG.test(srcAbs)) {
-    await sharp(srcAbs, { failOn: "none" }).rotate().resize(1200, 630, { fit: "cover", position: "centre" })
-      .jpeg({ quality: 82, mozjpeg: true }).toFile(dest);
-    podgladV = hash(fs.readFileSync(dest));
-  } else console.warn("⚠ brak zdjęcia do podglądu linku (albo modułu sharp)");
+  try {
+    if (srcAbs && fs.existsSync(srcAbs) && sharp && IMG.test(srcAbs)) {
+      await sharp(srcAbs, { failOn: "none" }).rotate().resize(1200, 630, { fit: "cover", position: "centre" })
+        .jpeg({ quality: 82, mozjpeg: true }).toFile(dest);
+      podgladV = hash(fs.readFileSync(dest));
+    } else warn("brak zdjęcia do podglądu linku (albo modułu sharp)");
+  } catch (e) { warn(`podgląd linku: ${e.message}`); }
+}
+if (sharp) {
+  try { await sharp(path.join(ROOT, "favicon.svg"), { density: 300 }).resize(180, 180).flatten({ background: "#faf6ef" }).png().toFile(path.join(OUT, "apple-touch-icon.png")); }
+  catch (e) { warn(`ikona na telefon: ${e.message}`); }
 }
 const adres = String(strona.adres_strony || "").trim().replace(/\/?$/, "/");
+const maAdres = /^https?:\/\//.test(adres);
+
+/* ---------- dane firmy dla Google (JSON-LD) ---------- */
+const ceny = (oferta.pakiety || []).map(p => Number(p.cena)).filter(n => n > 0);
+const firma = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  name: "Ewelina Kucharczyk Fotografia",
+  description: strona.opis_google || undefined,
+  url: maAdres ? adres : undefined,
+  image: maAdres && podgladV ? `${adres}media/_podglad.jpg` : undefined,
+  email: strona.kontakt?.email || undefined,
+  telephone: strona.kontakt?.telefon || undefined,
+  areaServed: strona.kontakt?.obszar || undefined,
+  priceRange: ceny.length ? `${Math.min(...ceny)}–${Math.max(...ceny)} zł` : undefined,
+  sameAs: Object.values(social).length ? Object.values(social) : undefined,
+};
+const jsonld = JSON.stringify(firma).replace(/</g, "\\u003c");
 
 /* =========================================================
-   7. index.html z szablonu
+   7. index.html i 404.html z szablonów
    ========================================================= */
 const view = {
-  strona: { ...strona, adres: podgladV && adres !== "/" ? adres : "", hero: { ...strona.hero, zdjecie: mediaUrl(strona.hero?.zdjecie), opis_html: inline(strona.hero?.opis) } },
-  o_mnie: { ...oMnie, zdjecie: mediaUrl(oMnie.zdjecie), tekst_html: paragraphs(oMnie.tekst) },
+  strona: {
+    ...strona,
+    tytul_strony: String(strona.tytul_strony || "").trim() || "Ewelina Kucharczyk · Fotografia",
+    adres: podgladV && maAdres ? adres : "",
+    adres_glowny: maAdres ? adres : "./",
+    hero: { ...strona.hero, zdjecie: mediaUrl(heroSrc), srcset: heroSrcset, opis_html: inline(strona.hero?.opis) },
+  },
+  o_mnie: { ...oMnie, zdjecie: mediaUrl(aboutSrc), tekst_html: paragraphs(oMnie.tekst) },
   oferta: {
     ...oferta,
     pakiety: (oferta.pakiety || []).map(p => ({ ...p, cena_txt: zl(p.cena), dodatkowe_txt: p.dodatkowe_zdjecie ? zl(p.dodatkowe_zdjecie) : "" })),
@@ -217,8 +333,10 @@ const view = {
   },
   galeria,
   podglad_v: podgladV,
+  jsonld,
 };
-fs.writeFileSync(path.join(OUT, "index.html"), template(fs.readFileSync(path.join(ROOT, "index.html"), "utf8"), view));
+for (const page of ["index.html", "404.html"])
+  fs.writeFileSync(path.join(OUT, page), template(fs.readFileSync(path.join(ROOT, page), "utf8"), view));
 
 /* =========================================================
    8. wersje plików: css/x.css → css/x.css?v=<odcisk treści>
@@ -233,4 +351,9 @@ for (const page of ["index.html", "polityka-prywatnosci.html"]) {
   }));
 }
 
-console.log(`✓ _site gotowe: ${photos.length} zdjęć w ${Object.keys(categories).length} kategoriach, ${wydarzenia.length} wydarzeń${sharp ? "" : " (bez zmniejszania zdjęć)"}`);
+const podsumowanie = `${photos.length} zdjęć w ${Object.keys(dane.CATEGORIES).length} kategoriach, ${wydarzenia.length} wydarzeń${sharp ? "" : " (bez zmniejszania zdjęć)"}`;
+console.log(`✓ _site gotowe: ${podsumowanie}${warnings.length ? `, ostrzeżenia: ${warnings.length}` : ""}`);
+if (process.env.GITHUB_STEP_SUMMARY) {
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### Strona zbudowana\n${podsumowanie}\n\n` +
+    (warnings.length ? `#### ⚠ Ostrzeżenia (${warnings.length})\n${warnings.map(w => `- ${w}`).join("\n")}\n` : "Bez ostrzeżeń.\n"));
+}

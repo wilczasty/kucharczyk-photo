@@ -10,12 +10,9 @@ window.initRezerwacje = function (root, cfg) {
   const pakiety = cfg.pakiety || [];
   if (!pakiety.length) return false;
 
-  const MIES = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
-  const MIES_D = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"];
-  const DNI = ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"];
+  const { MIES, MIES_D, DNI, esc } = window.EK;   // js/wspolne.js
   const pad = n => String(n).padStart(2, "0");
   const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const koniecGodz = (g, min) => { const [h, m] = g.split(":").map(Number); const t = h * 60 + m + min; return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`; };
   const opisDnia = k => { const d = new Date(k + "T12:00"); return `${DNI[d.getDay()]}, ${d.getDate()} ${MIES_D[d.getMonth()]}`; };
 

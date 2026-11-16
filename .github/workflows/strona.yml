@@ -12,25 +12,27 @@ permissions:
   pages: write
   id-token: write
 
-# kolejne zapisy w krótkim czasie: starsza, jeszcze trwająca publikacja zostaje anulowana
+# kolejne zapisy w krótkim czasie czekają w kolejce – trwająca publikacja nie jest przerywana w połowie
+# (tak zaleca GitHub dla Pages; przerwany deploy potrafi zostawić stronę w starej wersji)
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0          # pełna historia – kolejność zdjęć wg daty dodania
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
+      # ostrzeżenia (np. pominięte uszkodzone zdjęcie) widać w podsumowaniu przebiegu w zakładce „Actions”
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -42,4 +44,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

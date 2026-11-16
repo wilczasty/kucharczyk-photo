@@ -25,9 +25,12 @@ Maile do klientów wychodzą z tego konta.
 4. Wklej go w `js/config.js` → `rezerwacjeUrl: "…/exec"` (albo wyślij Adrianowi).
 
 ## Zmiany w ustawieniach (godziny, dni, przerwy)
-Na górze `Kod.gs` → `USTAWIENIA`. Po zmianie: **Wdróż → Zarządzaj wdrożeniami → ✏️ edytuj →
-Wersja: Nowa wersja → Wdróż**. Adres `/exec` się nie zmienia.
-Zmiana pakietów (długości) – także w `js/config.js` → `pakiety`.
+Na co dzień – w panelu Pages CMS: **„Rezerwacje – godziny i zasady”** (`content/rezerwacje.json`).
+Skrypt czyta je z opublikowanej strony z ok. 5-minutowym opóźnieniem, bez ponownego wdrażania.
+Wartości w `USTAWIENIA` na górze `Kod.gs` to tylko zapas, gdyby strona była niedostępna.
+Długości pakietów (S/M/L) są w `content/oferta.json` (w panelu tylko do odczytu – zmienia je Adrian)
+i muszą zgadzać się z pakietami w `Kod.gs`. Po każdej zmianie w `Kod.gs`: **Wdróż → Zarządzaj wdrożeniami →
+✏️ edytuj → Wersja: Nowa wersja → Wdróż**. Adres `/exec` się nie zmienia.
 
 ## Jak to działa na co dzień
 - Klient wybiera termin → w kalendarzu pojawia się **żółte** wydarzenie „❓ PROŚBA: …”,
