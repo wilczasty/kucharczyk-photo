@@ -616,14 +616,14 @@ content:
         type: string
 
   - name: wyglad
-    label: Wygląd – czcionki
+    label: Wygląd – fonty
     type: file
     path: content/wyglad.json
     format: json
     fields:
       - name: naglowki
-        label: Czcionka nagłówków
-        description: "Tytuły sekcji, nazwy pakietów, ceny. Podgląd wszystkich z listy: strona czcionki.html (adres strony + czcionki.html)."
+        label: Font nagłówków
+        description: "Tytuły sekcji, nazwy pakietów, ceny. Podgląd wszystkich z listy: strona fonty.html (adres strony + fonty.html)."
         type: select
         default: "Cormorant Garamond"
         options:
@@ -639,14 +639,14 @@ content:
             - "Fraunces"
             - "Bodoni Moda"
       - name: naglowki_inny
-        label: Czcionka nagłówków – inny font z Google Fonts (opcjonalnie)
+        label: Font nagłówków – inny font z Google Fonts (opcjonalnie)
         description: >-
           Dokładna nazwa z fonts.google.com, np. „Playfair Display”. Wpisana nazwa ma pierwszeństwo przed listą wyżej. Font musi mieć
           polskie znaki – jeśli nie ma albo nazwa jest błędna, zostaje Cormorant Garamond (ostrzeżenie w zakładce Actions).
         type: string
       - name: tekst
-        label: Czcionka tekstu
-        description: "Zwykły tekst, przyciski, formularze. Podgląd: czcionki.html."
+        label: Font tekstu
+        description: "Zwykły tekst, przyciski, formularze. Podgląd: fonty.html."
         type: select
         default: "Jost"
         options:
@@ -662,14 +662,14 @@ content:
             - "Mulish"
             - "Josefin Sans"
       - name: tekst_inny
-        label: Czcionka tekstu – inny font z Google Fonts (opcjonalnie)
+        label: Font tekstu – inny font z Google Fonts (opcjonalnie)
         description: >-
           Dokładna nazwa z fonts.google.com, np. „Lato”. Wpisana nazwa ma pierwszeństwo przed listą wyżej. Font musi mieć
           polskie znaki – jeśli nie ma albo nazwa jest błędna, zostaje Jost (ostrzeżenie w zakładce Actions).
         type: string
       - name: odreczny
-        label: Czcionka odręczna
-        description: "Ozdobne napisy („zatrzymane chwile”, „dziękuję!”). Podgląd: czcionki.html."
+        label: Font odręczny
+        description: "Ozdobne napisy („zatrzymane chwile”, „dziękuję!”). Podgląd: fonty.html."
         type: select
         default: "Caveat"
         options:
@@ -685,7 +685,7 @@ content:
             - "Italianno"
             - "Amatic SC"
       - name: odreczny_inny
-        label: Czcionka odręczna – inny font z Google Fonts (opcjonalnie)
+        label: Font odręczny – inny font z Google Fonts (opcjonalnie)
         description: >-
           Dokładna nazwa z fonts.google.com, np. „Dancing Script”. Wpisana nazwa ma pierwszeństwo przed listą wyżej. Font musi mieć
           polskie znaki – jeśli nie ma albo nazwa jest błędna, zostaje Caveat (ostrzeżenie w zakładce Actions).

@@ -300,7 +300,7 @@ const cfgPatch = {
   poWyslaniu: String(teksty.rezerwacja_po_wyslaniu || "").trim(),
   komunikatWstrzymania: String(rez.komunikat_wstrzymania || "").trim(),
 };
-/* ---------- fonty z panelu („Wygląd – czcionki”) → _site/fonty/ + css/fonty.css ---------- */
+/* ---------- fonty z panelu („Wygląd – fonty”) → _site/fonty/ + css/fonty.css ---------- */
 const fonty = await przygotujFonty(wyglad, OUT, warn);
 fs.writeFileSync(path.join(OUT, "css/fonty.css"), fonty.css);
 dane.FONTY = { polecane: POLECANE, wybrane: fonty.wybrane };
@@ -437,7 +437,7 @@ const view = {
   podglad_v: podgladV,
   jsonld,
 };
-const STRONY = ["index.html", "404.html", "odwolanie.html", "decyzja.html", "polityka-prywatnosci.html", "czcionki.html"];
+const STRONY = ["index.html", "404.html", "odwolanie.html", "decyzja.html", "polityka-prywatnosci.html", "fonty.html"];
 for (const page of STRONY)
   fs.writeFileSync(path.join(OUT, page), template(fs.readFileSync(path.join(ROOT, page), "utf8"), view));
 

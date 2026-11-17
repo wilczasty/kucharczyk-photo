@@ -1,6 +1,6 @@
 // =========================================================
 // Fonty strony – hostowane na stronie, a nie pobierane z Google przy każdym wejściu (RODO: Google nie widzi
-// odwiedzających). Wybór w panelu: „Wygląd – czcionki” (content/wyglad.json).
+// odwiedzających). Wybór w panelu: „Wygląd – fonty” (content/wyglad.json).
 //
 // - fonty domyślne leżą w repozytorium (build/fonty-domyslne/) – build działa nawet bez internetu,
 // - inny font: build pobiera go z Google Fonts przy publikacji (tylko alfabet łaciński z polskimi znakami),
@@ -25,7 +25,7 @@ export const ROLE = {
   odreczny: { zmienna: "--script", wagi: [500, 400], jedna: true, zapas: "cursive", domyslny: "Caveat" },
 };
 const ALFABETY = ["latin-ext", "latin"];   // latin-ext = ą ć ę ł ń ś ź ż
-// listy w panelu (.pages.yml – „Wygląd – czcionki”) i na stronie podglądu czcionki.html – wszystkie mają polskie znaki
+// listy w panelu (.pages.yml – „Wygląd – fonty”) i na stronie podglądu fonty.html – wszystkie mają polskie znaki
 export const POLECANE = {
   naglowki: ["Cormorant Garamond", "Playfair Display", "Lora", "EB Garamond", "Libre Baskerville", "Marcellus", "Cinzel", "DM Serif Display", "Fraunces", "Bodoni Moda"],
   tekst: ["Jost", "Lato", "Montserrat", "Raleway", "Nunito Sans", "Work Sans", "Source Sans 3", "Karla", "Mulish", "Josefin Sans"],
@@ -103,7 +103,7 @@ const zSieci = async url => {
  */
 export async function przygotujFonty(wyglad, OUT, warn) {
   const doKatalogu = path.join(OUT, "fonty");
-  let css = "/* Plik generowany przez build/fonty.mjs – fonty wybiera się w panelu („Wygląd – czcionki”). */\n";
+  let css = "/* Plik generowany przez build/fonty.mjs – fonty wybiera się w panelu („Wygląd – fonty”). */\n";
   const zmienne = [];
   const wybrane = {};
   for (const [klucz, rola] of Object.entries(ROLE)) {
@@ -113,7 +113,7 @@ export async function przygotujFonty(wyglad, OUT, warn) {
       try {
         css += await zapisz(wybor, await zGoogle(wybor, rola), rola, doKatalogu, zSieci);
       } catch (e) {
-        warn(`czcionka (${klucz}): ${e.message} – zostaje ${rola.domyslny}`);
+        warn(`font (${klucz}): ${e.message} – zostaje ${rola.domyslny}`);
         rodzina = rola.domyslny;
       }
     }
