@@ -175,6 +175,8 @@ window.initRezerwacje = function (root, cfg) {
       return boczny(`<p class="rez__hint">W tym miesiącu nie ma już wolnych terminów dla pakietu ${esc(st.pak.nazwa)}.
         <br>Sprawdź następny miesiąc ›</p>`);
     }
+    // dzień spoza tego miesiąca (kliknięty w trakcie przełączania miesiąca) albo już bez wolnych godzin
+    if (st.dzien && !dni[st.dzien]) { st.dzien = null; st.godz = null; }
     if (!st.dzien) return boczny(`<p class="script">wybierz dzień</p><p class="rez__hint">Podświetlone dni mają wolne godziny.</p>`);
     boczny(`
       <p class="rez__day">${opisDnia(st.dzien)}</p>
