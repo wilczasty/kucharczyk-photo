@@ -346,7 +346,7 @@ function zarezerwuj_(d) {
           "<p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
           "<p>E-mail: <a href='mailto:" + esc_(email) + "'>" + esc_(email) + "</a><br>Telefon: " + esc_(telefon || "–") + "</p>" +
           "<p>Uwagi:<br>" + esc_(uwagi || "–").replace(/\n/g, "<br>") + "</p>" +
-          "<p>Termin jest już wstępnie zablokowany w kalendarzu (żółte wydarzenie)." +
+          "<p>Termin jest już wstępnie zarezerwowany (żółte wydarzenie w kalendarzu)." +
           (USTAWIENIA.wygasanieDni ? " Jeśli nie rozpatrzysz prośby w ciągu " + dni_(USTAWIENIA.wygasanieDni) +
             ", wygaśnie, a klient dostanie maila, że termin został zwolniony." : "") + "</p>" +
           przyciskDecyzji_(ev.getId(), token, "Potwierdź lub odrzuć") +
