@@ -13,7 +13,7 @@
   const doMnie = mail ? `napisz na <a href="mailto:${esc(mail)}">${esc(mail)}</a> albo odpowiedz` : "odpowiedz";
   const pokaz = html => { box.innerHTML = html; const h = box.querySelector("h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } };
   const termin = r => `<p class="odw__termin"><b>${esc(r.pakiet)}</b> · ${esc(r.kiedy)}</p>`;
-  const rezerwuj = (slowo = "wybrać") => `<a href="./#rezerwacja">${slowo} nowy termin</a>`;
+  const rezerwuj = (tekst = "wybrać nowy termin") => `<a href="./#rezerwacja">${tekst}</a>`;
 
   async function info() {
     if (demo) return { ok: true, stan: demo, pakiet: "Sesja standard", kiedy: "piątek, 12 grudnia 2026, 10:00–10:50", najpozniej: 48, potwierdzona: true };
@@ -50,7 +50,7 @@
         <p>Rezerwację można odwołać online najpóźniej ${Number(r.najpozniej)} godz. przed sesją. ${doMnie[0].toUpperCase() + doMnie.slice(1)} na maila z potwierdzeniem – na pewno coś ustalimy.</p>`);
     }
     pokaz(`<h1>Odwołanie rezerwacji</h1>${termin(r)}
-      <p>Chcesz przełożyć sesję? Odwołaj ten termin i ${rezerwuj("wybierz")} na stronie albo po prostu odpowiedz na maila – ustalimy coś razem.</p>
+      <p>Chcesz przełożyć sesję? Odwołaj ten termin i ${rezerwuj("wybierz nowy")} na stronie albo po prostu odpowiedz na maila – ustalimy coś razem.</p>
       <form class="form" novalidate>
         <label>Powód (opcjonalnie)<textarea name="powod" rows="3" maxlength="1000"></textarea></label>
         <button type="submit" class="btn btn--warn">Tak, odwołuję rezerwację</button>
