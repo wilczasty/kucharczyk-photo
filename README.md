@@ -50,6 +50,7 @@ a po ok. 1–2 minutach strona aktualizuje się sama (postęp: zakładka **Actio
   - nowy folder = nowy przycisk kategorii (pusty folder się nie wyświetla),
   - liczba na początku nazwy ustala kolejność i nie jest wyświetlana (`1 Rodzinne i dziecięce`),
   - zdjęcia można wgrywać prosto z aparatu – przy publikacji są zmniejszane (2000 px) i tracą dane EXIF/GPS,
+    a build robi z nich też lżejszą wersję WebP (strona używa jej, JPG zostaje jako zapas),
   - format: JPG (PNG bez przezroczystości build sam zamienia na JPG). Zdjęcia HEIC z iPhone'a są pomijane –
     na iPhonie: Ustawienia → Aparat → Formaty → „Najbardziej zgodne”,
   - nowe zdjęcia pojawiają się na początku galerii; przeniesione do innego folderu zostają na swoim miejscu

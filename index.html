@@ -57,7 +57,10 @@
 <main id="tresc" tabindex="-1">
 <!-- ============ HERO ============ -->
 <section class="hero" id="start">
-  <img class="hero__bg" src="{{strona.hero.zdjecie}}"{{#strona.hero.srcset?}} srcset="{{strona.hero.srcset}}" sizes="100vw"{{/strona.hero.srcset?}} alt="" fetchpriority="high">
+  <picture>
+    {{#strona.hero.srcset_webp?}}<source type="image/webp" srcset="{{strona.hero.srcset_webp}}" sizes="100vw">{{/strona.hero.srcset_webp?}}
+    <img class="hero__bg" src="{{strona.hero.zdjecie}}"{{#strona.hero.srcset?}} srcset="{{strona.hero.srcset}}" sizes="100vw"{{/strona.hero.srcset?}} alt="" fetchpriority="high">
+  </picture>
   <div class="hero__content">
     <p class="script">{{strona.hero.napis}}</p>
     <h1>{{strona.hero.tytul}}</h1>
@@ -74,7 +77,10 @@
 <section class="section about" id="o-mnie">
   <div class="container about__grid">
     <figure class="about__photo reveal">
-      <img src="{{o_mnie.zdjecie}}" alt="{{strona.hero.tytul}}" loading="lazy">
+      <picture>
+        {{#o_mnie.zdjecie_webp?}}<source type="image/webp" srcset="{{o_mnie.zdjecie_webp}}">{{/o_mnie.zdjecie_webp?}}
+        <img src="{{o_mnie.zdjecie}}" alt="{{strona.hero.tytul}}" loading="lazy">
+      </picture>
       {{#o_mnie.podpis_zdjecia?}}<figcaption class="script">{{o_mnie.podpis_zdjecia}}</figcaption>{{/o_mnie.podpis_zdjecia?}}
     </figure>
     <div class="about__text reveal">

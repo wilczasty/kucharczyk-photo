@@ -9,6 +9,7 @@
 // - zdjęcia zmniejsza (maks. 2000 px), usuwa z nich dane EXIF/GPS i robi miniatury do galerii
 //   (jeśli moduł "sharp" nie jest zainstalowany – kopiuje bez zmian),
 // - PNG bez przezroczystości zamienia na JPEG (wielokrotnie mniejsze pliki),
+// - obok każdego zdjęcia robi wersję WebP (plik.jpg.webp, ok. 25% mniejsza) – strona używa jej, a JPG zostaje jako zapas,
 // - uszkodzone albo nieobsługiwane pliki pomija z ostrzeżeniem – nie zatrzymują publikacji.
 // =========================================================
 import fs from "node:fs";
@@ -116,6 +117,10 @@ function addedDates(dir) {
 const renamed = new Map();
 const outRel = r => renamed.get(r) || r;
 const mediaUrl = p => (p ? urlPath(outRel(normPath(p))) : "");
+// wersje WebP: ścieżki (względem _site) zdjęć, dla których powstał plik <ścieżka>.webp
+const webpOut = new Set();
+const webpUrl = outRelPath => (webpOut.has(outRelPath) ? urlPath(outRelPath + ".webp") : "");
+const mediaWebp = p => (p ? webpUrl(outRel(normPath(p))) : "");
 const mediaExists = p => !!p && fs.existsSync(path.join(ROOT, normPath(p)));
 
 async function processImage(srcAbs, destAbs, width, toJpeg = false) {
@@ -127,7 +132,18 @@ async function processImage(srcAbs, destAbs, width, toJpeg = false) {
   else if (/\.png$/i.test(srcAbs)) img = img.png({ compressionLevel: 9 });
   else if (/\.webp$/i.test(srcAbs)) img = img.webp({ quality: 82 });
   else img = img.jpeg({ quality: 82, mozjpeg: true });
-  return img.toFile(destAbs);    // { width, height, … }
+  const info = await img.toFile(destAbs);    // { width, height, size, … }
+  // WebP obok (z tej samej, już zmniejszonej wersji) – tylko gdy faktycznie mniejszy
+  if (!/\.webp$/i.test(destAbs)) {
+    try {
+      const w = await sharp(destAbs).webp({ quality: 80 }).toBuffer();
+      if (w.length < info.size * 0.95) {
+        fs.writeFileSync(destAbs + ".webp", w);
+        webpOut.add(path.relative(OUT, destAbs).split(path.sep).join("/").normalize("NFC"));
+      }
+    } catch (e) { warn(`WebP: ${path.basename(destAbs)}: ${e.message}`); }
+  }
+  return info;
 }
 async function pool(tasks, n = 4) {
   const it = tasks[Symbol.iterator]();
@@ -222,7 +238,7 @@ if (!mediaExists(aboutSrc) || failed.has(aboutSrc)) {
   aboutSrc = heroSrc;
 }
 // baner na telefon: mniejsza wersja (ten sam kadr, ~1000 px zamiast 2000 px)
-let heroSrcset = "";
+let heroSrcset = "", heroSrcsetW = "";
 if (sharp && heroSrc && IMG.test(heroSrc)) {
   try {
     const big = await sharp(path.join(OUT, outRel(heroSrc))).metadata();
@@ -230,6 +246,7 @@ if (sharp && heroSrc && IMG.test(heroSrc)) {
       const smallRel = "media/_male/" + outRel(heroSrc).slice("media/".length);
       const info = await processImage(path.join(ROOT, heroSrc), path.join(OUT, smallRel), HERO_SMALL, renamed.has(heroSrc));
       heroSrcset = `${urlPath(smallRel)} ${info.width}w, ${mediaUrl(heroSrc)} ${big.width}w`;
+      if (webpUrl(smallRel) && mediaWebp(heroSrc)) heroSrcsetW = `${webpUrl(smallRel)} ${info.width}w, ${mediaWebp(heroSrc)} ${big.width}w`;
     }
   } catch (e) { warn(`baner: nie udało się zrobić wersji na telefon (${e.message})`); }
 }
@@ -244,6 +261,7 @@ const dane = {
     const t = thumbInfo.get(p.rel);
     return {
       src: urlPath(outRel(p.rel)), thumb: t ? urlPath(thumbRel(p.rel)) : undefined,
+      srcW: webpUrl(outRel(p.rel)) || undefined, thumbW: t ? webpUrl(thumbRel(p.rel)) || undefined : undefined,
       w: t?.width, h: t?.height, category: p.category, caption: p.caption,
     };
   }),
@@ -253,7 +271,7 @@ const dane = {
     return {
       tytul: e.tytul, data: String(e.data).slice(0, 10), od: e.od || "", do: e.do || "",
       opis: e.opis || "", opis_html: paragraphs(e.opis), miejsce: e.miejsce || "", cena: e.cena || "", miejsca: e.miejsca || "",
-      brak_miejsc: !!e.brak_miejsc, zdjecie: mediaUrl(e.zdjecie), kadrowanie: e.kadrowanie || "", zapisy,
+      brak_miejsc: !!e.brak_miejsc, zdjecie: mediaUrl(e.zdjecie), zdjecieW: mediaWebp(e.zdjecie), kadrowanie: e.kadrowanie || "", zapisy,
     };
   }),
 };
@@ -396,9 +414,12 @@ const view = {
     tytul_strony: String(strona.tytul_strony || "").trim() || "Ewelina Kucharczyk · Fotografia",
     adres: podgladV && maAdres ? adres : "",
     adres_glowny: maAdres ? adres : "./",
-    hero: { ...strona.hero, zdjecie: mediaUrl(heroSrc), srcset: heroSrcset, opis_html: inline(strona.hero?.opis) },
+    hero: {
+      ...strona.hero, zdjecie: mediaUrl(heroSrc), srcset: heroSrcset, opis_html: inline(strona.hero?.opis),
+      srcset_webp: heroSrcsetW || mediaWebp(heroSrc),
+    },
   },
-  o_mnie: { ...oMnie, zdjecie: mediaUrl(aboutSrc), tekst_html: paragraphs(oMnie.tekst) },
+  o_mnie: { ...oMnie, zdjecie: mediaUrl(aboutSrc), zdjecie_webp: mediaWebp(aboutSrc), tekst_html: paragraphs(oMnie.tekst) },
   oferta: {
     ...oferta,
     pakiety: (oferta.pakiety || []).map(p => ({ ...p, cena_txt: zl(p.cena), dodatkowe_txt: p.dodatkowe_zdjecie ? zl(p.dodatkowe_zdjecie) : "" })),

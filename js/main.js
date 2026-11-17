@@ -4,6 +4,13 @@
   const { esc, https, MIES_D, MIES_KR, DNI } = window.EK;   // js/wspolne.js
   // każda część strony osobno – błąd w jednej (np. w wydarzeniach) nie wyłącza pozostałych
   const czesc = (nazwa, fn) => { try { fn(); } catch (e) { console.error(`[${nazwa}]`, e); } };
+  // zdjęcie: wersja WebP (mniejsza), a gdyby przeglądarka jej nie wyświetliła – JPG
+  const ustawZdjecie = (img, webp, jpg) => {
+    img.onerror = null;
+    if (!webp) { img.src = jpg; return; }
+    img.onerror = () => { img.onerror = null; img.src = jpg; };
+    img.src = webp;
+  };
 
   /* ---------- formularz kontaktowy – podpięty jako pierwszy, żeby nigdy nie wysłał się „po staremu” ---------- */
   czesc("formularz", () => {
@@ -119,7 +126,7 @@
         a.dataset.i = i;
         a.style.animationDelay = `${Math.min(j, 8) * 60}ms`;
         const img = document.createElement("img");
-        img.src = p.thumb || p.src;
+        ustawZdjecie(img, p.thumbW || (p.thumb ? "" : p.srcW), p.thumb || p.src);
         img.alt = p.alt || p.caption || "Zdjęcie z portfolio – powiększ";
         if (p.w && p.h) { img.width = p.w; img.height = p.h; }   // miejsce zarezerwowane – kolumny nie skaczą przy ładowaniu
         img.loading = "lazy";
@@ -165,7 +172,7 @@
     const show = i => {
       idx = (i + visible.length) % visible.length;
       const p = visible[idx];
-      lbImg.src = p.src;
+      ustawZdjecie(lbImg, p.srcW, p.src);
       lbImg.alt = p.alt || p.caption || `Zdjęcie ${idx + 1} z ${visible.length}`;
       lbCap.textContent = p.caption || "";
     };
@@ -253,7 +260,7 @@
           : `<a class="btn" href="#kontakt" data-signup="${i}">Zapisz się</a>`;
       evList.insertAdjacentHTML("beforeend", `
         <article class="event reveal${e.brak_miejsc ? " event--pelne" : ""}">
-          ${e.zdjecie ? `<div class="event__img event__img--${KADR[e.kadrowanie] ? e.kadrowanie : "srodek"}"><img src="${esc(e.zdjecie)}" alt="" loading="lazy"></div>` : ""}
+          ${e.zdjecie ? `<div class="event__img event__img--${KADR[e.kadrowanie] ? e.kadrowanie : "srodek"}"><picture>${e.zdjecieW ? `<source type="image/webp" srcset="${esc(e.zdjecieW)}">` : ""}<img src="${esc(e.zdjecie)}" alt="" loading="lazy"></picture></div>` : ""}
           <div class="event__body">
             <p class="event__date"><b>${e.d.getDate()}</b>${MIES_KR[e.d.getMonth()]}</p>
             ${e.brak_miejsc ? `<p class="event__full script">brak miejsc</p>` : ""}
