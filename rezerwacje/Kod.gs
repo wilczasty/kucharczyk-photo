@@ -355,7 +355,7 @@ function zarezerwuj_(d) {
     } catch (err) {
       // nie udało się powiadomić właściciela → zwalniamy termin, klient może spróbować ponownie
       console.error(err);
-      try { ev.deleteEvent(); } catch (e2) { console.error(e2); }
+      try { usun_(ev); } catch (e2) { console.error(e2); }
       return { ok: false, blad: etap === "poczta" ? "poczta" : "serwer" };
     }
 
@@ -435,7 +435,7 @@ function decyzja(id, token, akcja, wiadomosc) {
     return ok ? "Rezerwacja potwierdzona ✔" : "Rezerwacja potwierdzona" + nieDoszedl;
   }
 
-  ev.deleteEvent();
+  usun_(ev);
   zmianaTerminow_();
   if (akcja === "odwolaj") {
     const ok = wyslijBezpiecznie_({
@@ -503,7 +503,7 @@ function odwolaj_(id, token, powod) {
       console.error(err);
       return { ok: false, blad: "poczta" };
     }
-    ev.deleteEvent();
+    usun_(ev);
     zmianaTerminow_();
     wyslijBezpiecznie_({
       to: email, replyTo: wlasciciel_(), name: USTAWIENIA.podpis,
@@ -530,7 +530,7 @@ function wydarzenieKlienta_(id, token) {
   if (!id || !token) return null;
   const ev = kalendarz_(USTAWIENIA.kalendarzRezerwacji).getEventById(String(id));
   if (!ev || !ev.getTag("tokenK") || ev.getTag("tokenK") !== String(token)) return null;
-  return ev;
+  return istnieje_(ev) ? ev : null;
 }
 function moznaOdwolac_(ev) {
   return ev.getStartTime().getTime() - Date.now() > USTAWIENIA.odwolanieNajpozniejGodzin * 3600e3;
@@ -580,7 +580,7 @@ function zadaniaCykliczne() {
           if (minela || (USTAWIENIA.wygasanieDni && wiek >= USTAWIENIA.wygasanieDni * 86400e3)) {
             const opis = opisRezerwacji_(ev);
             if (!minela) mailWygasniecia_(ev);
-            ev.deleteEvent();
+            usun_(ev);
             zmiana = true;
             wygasle.push(opis);
           } else if (wiek >= 24 * 3600e3) {
@@ -687,7 +687,20 @@ function wydarzenie_(id, token) {
   if (!id || !token) return null;
   const ev = kalendarz_(USTAWIENIA.kalendarzRezerwacji).getEventById(String(id));
   if (!ev || !ev.getTag("token") || ev.getTag("token") !== String(token)) return null;
-  return ev;
+  return istnieje_(ev) ? ev : null;
+}
+// getEventById zwraca też wydarzenia usunięte (z kosza) – sprawdzamy, czy wydarzenie wciąż jest w kalendarzu.
+// Usunięte przez skrypt mają znacznik „usunieta”; usunięte ręcznie w Kalendarzu nie pojawiają się w getEvents.
+function istnieje_(ev) {
+  if (ev.getTag("rezerwacja") === "usunieta") return false;
+  const id = ev.getId();
+  return kalendarz_(USTAWIENIA.kalendarzRezerwacji)
+    .getEvents(ev.getStartTime(), ev.getEndTime()).some(e => e.getId() === id);
+}
+// usuwa wydarzenie rezerwacji, zostawiając znacznik (na wypadek, gdyby Google nadal je zwracał)
+function usun_(ev) {
+  try { ev.setTag("rezerwacja", "usunieta"); } catch (err) { console.error(err); }
+  ev.deleteEvent();
 }
 // Pakiet rezerwacji – z ustawień, a gdy go już nie ma w cenniku: nazwa z identyfikatora.
 function pakiet_(ev) {
