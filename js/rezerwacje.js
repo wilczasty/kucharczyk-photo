@@ -216,8 +216,7 @@ window.initRezerwacje = function (root, cfg) {
         return;
       }
       const d = Object.fromEntries(new FormData(f));
-      // zgoda: tylko dla starej wersji skryptu (sprzed W9) – nowa tego pola nie sprawdza; można usunąć po wdrożeniu
-      Object.assign(d, { zgoda: true, pakiet: st.pak.id, data: st.dzien, godzina: st.godz });
+      Object.assign(d, { pakiet: st.pak.id, data: st.dzien, godzina: st.godz });
       btn.disabled = true;
       status.textContent = "Wysyłanie…";
       let wynik;
@@ -229,7 +228,7 @@ window.initRezerwacje = function (root, cfg) {
         boczny(`
           <p class="script">dziękuję!</p>
           <p class="rez__day">${opisDnia(d.data)}, ${d.godzina}–${koniecGodz(d.godzina, st.pak.minut)}</p>
-          <p>${esc(cfg.poWyslaniu || "Prośba o rezerwację została wysłana, a termin jest wstępnie zablokowany dla Ciebie. Potwierdzę go osobnym mailem.")}</p>
+          <p>${esc(cfg.poWyslaniu || "Prośba o rezerwację została wysłana, a termin jest już wstępnie zarezerwowany dla Ciebie. Potwierdzę go osobnym mailem.")}</p>
           <p class="rez__hint">Potwierdzenie otrzymania prośby wysłałam na: <b>${esc(d.email)}</b></p>`);
         st.dzien = null; st.godz = null;
         return;

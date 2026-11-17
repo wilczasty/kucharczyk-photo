@@ -29,7 +29,6 @@
         akcja: "kontakt",
         imie: f.name, email: f.email, rodzaj: f.session_type, wiadomosc: f.message,
         strona: f.strona || "",
-        zgoda: true,   // tylko dla starej wersji skryptu (sprzed W9) – nowa tego pola nie sprawdza; można usunąć po wdrożeniu
       };
       status.textContent = "Wysyłanie…";
       btn.disabled = true;

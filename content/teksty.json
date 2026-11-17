@@ -9,7 +9,7 @@
     "Podaj dane i wyślij prośbę",
     "Potwierdzam termin mailowo"
   ],
-  "rezerwacja_po_wyslaniu": "Prośba o rezerwację została wysłana, a termin jest wstępnie zablokowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.",
+  "rezerwacja_po_wyslaniu": "Prośba o rezerwację została wysłana, a termin jest już wstępnie zarezerwowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.",
   "newsletter_naglowek": "Bądźmy w kontakcie",
   "newsletter_opis": "Raz na jakiś czas napiszę o wolnych terminach, warsztatach i nowych sesjach. Bez spamu, obiecuję.",
   "newsletter_po_zapisie": "Sprawdź skrzynkę i kliknij link w wiadomości ode mnie, żeby potwierdzić zapis. Jeśli jej nie widzisz, zajrzyj do spamu lub zakładki „Oferty”.",
