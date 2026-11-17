@@ -199,8 +199,7 @@ window.initRezerwacje = function (root, cfg) {
         <label>Telefon (opcjonalnie)<input type="tel" name="telefon" autocomplete="tel" maxlength="40"></label>
         <label>Rodzaj sesji, pomysły, miejsce<textarea name="uwagi" rows="3" maxlength="1500"></textarea></label>
         <label class="rez__trap" aria-hidden="true">Strona www<input type="text" name="strona" tabindex="-1" autocomplete="off"></label>
-        <label class="form__check"><input type="checkbox" name="zgoda" required>
-          <span>Wyrażam zgodę na przetwarzanie moich danych w celu rezerwacji sesji. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank">polityce prywatności</a>.</span></label>
+        <p class="form__info">Wysyłając prośbę, przekazujesz mi swoje dane, żebym mogła umówić i przeprowadzić sesję. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank">polityce prywatności</a>.</p>
         <button type="submit" class="btn">Wyślij prośbę o rezerwację</button>
         <p class="form__status" role="status"></p>
       </form>`);
@@ -210,11 +209,12 @@ window.initRezerwacje = function (root, cfg) {
       e.preventDefault();
       status.className = "form__status";
       if (!f.checkValidity()) {
-        status.textContent = "Uzupełnij imię, poprawny e-mail i zaznacz zgodę.";
+        status.textContent = "Uzupełnij imię i poprawny e-mail.";
         status.classList.add("err");
         return;
       }
       const d = Object.fromEntries(new FormData(f));
+      // zgoda: tylko dla starej wersji skryptu (sprzed W9) – nowa tego pola nie sprawdza; można usunąć po wdrożeniu
       Object.assign(d, { zgoda: true, pakiet: st.pak.id, data: st.dzien, godzina: st.godz });
       btn.disabled = true;
       status.textContent = "Wysyłanie…";
@@ -227,14 +227,15 @@ window.initRezerwacje = function (root, cfg) {
         boczny(`
           <p class="script">dziękuję!</p>
           <p class="rez__day">${opisDnia(d.data)}, ${d.godzina}–${koniecGodz(d.godzina, st.pak.minut)}</p>
-          <p>Prośba o rezerwację została wysłana, a termin jest wstępnie zablokowany dla Ciebie.
-          Na <b>${esc(d.email)}</b> przyszło potwierdzenie otrzymania prośby – a ja potwierdzę termin osobnym mailem, zwykle w ciągu 24 godzin.</p>`);
+          <p>${esc(cfg.poWyslaniu || "Prośba o rezerwację została wysłana, a termin jest wstępnie zablokowany dla Ciebie. Potwierdzę go osobnym mailem.")}</p>
+          <p class="rez__hint">Potwierdzenie otrzymania prośby wysłałam na: <b>${esc(d.email)}</b></p>`);
         st.dzien = null; st.godz = null;
         return;
       }
       const KOMUNIKATY = {
         termin: "Ktoś właśnie zarezerwował ten termin. Wybierz proszę inną godzinę.",
         limit: "Z tego adresu wysłano już kilka próśb. Napisz do mnie bezpośrednio, chętnie pomogę.",
+        limitDzienny: "Dziś przyjęłam już bardzo dużo próśb przez stronę. Napisz do mnie bezpośrednio – ustalimy termin.",
         dane: "Sprawdź proszę wpisane dane.",
         zajete: "Serwer jest chwilowo zajęty – spróbuj ponownie za chwilę.",
         poczta: "Nie mogę teraz przyjąć prośby (chwilowy problem z wysyłką maili). Spróbuj proszę za kilka godzin albo napisz do mnie.",

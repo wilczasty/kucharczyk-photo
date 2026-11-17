@@ -16,10 +16,11 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { przygotujFonty, POLECANE } from "./fonty.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "_site");
-const STATIC = ["css", "js", "polityka-prywatnosci.html", "favicon.svg"];
+const STATIC = ["css", "js", "favicon.svg"];
 const IMG = /\.(jpe?g|png|webp)$/i;
 const COPY_ONLY = /\.(svg|gif|avif)$/i;
 const UNSUPPORTED = /\.(heic|heif|tiff?|bmp|dng|raw|cr2|cr3|nef|arw|orf|rw2|psd)$/i;
@@ -148,6 +149,9 @@ const strona = readJson("content/strona.json");
 const oMnie = readJson("content/o-mnie.json");
 const oferta = readJson("content/oferta.json");
 const galeria = readJson("content/galeria.json");
+const teksty = readJson("content/teksty.json");
+const wyglad = readJson("content/wyglad.json");
+const daneFirmy = readJson("content/firma.json");
 const wydarzenia = walk(path.join(ROOT, "content/wydarzenia")).filter(f => f.endsWith(".json"))
   .map(f => { try { return { ...JSON.parse(fs.readFileSync(f, "utf8")), plik: rel(f) }; } catch (e) { warn(`pomijam ${rel(f)}: ${e.message}`); return null; } })
   .filter(e => e && e.data && e.tytul);
@@ -275,8 +279,14 @@ const cfgPatch = {
   pakiety: pakietyRez.map(p => ({ ...p, cena: zl((oferta.pakiety || []).find(o => o.id === p.id)?.cena) })),
   najdalejDni: Number(rez.najdalej_dni) || 120,
   rezerwacjeWstrzymane: !przyjmuje,
+  poWyslaniu: String(teksty.rezerwacja_po_wyslaniu || "").trim(),
   komunikatWstrzymania: String(rez.komunikat_wstrzymania || "").trim(),
 };
+/* ---------- fonty z panelu („Wygląd – czcionki”) → _site/fonty/ + css/fonty.css ---------- */
+const fonty = await przygotujFonty(wyglad, OUT, warn);
+fs.writeFileSync(path.join(OUT, "css/fonty.css"), fonty.css);
+dane.FONTY = { polecane: POLECANE, wybrane: fonty.wybrane };
+
 fs.writeFileSync(path.join(OUT, "js/dane.js"),
   "/* Plik generowany przez build/build.mjs – nie edytuj, zmiany rób w panelu (content/, media/). */\n" +
   Object.entries(dane).map(([k, v]) => `window.${k} = ${JSON.stringify(v)};`).join("\n") +
@@ -324,10 +334,61 @@ const firma = {
   priceRange: ceny.length ? `${Math.min(...ceny)}–${Math.max(...ceny)} zł` : undefined,
   sameAs: Object.values(social).length ? Object.values(social) : undefined,
 };
-const jsonld = JSON.stringify(firma).replace(/</g, "\\u003c");
+// wydarzenia (nadchodzące) – Google może je pokazać w wynikach z datą i miejscem
+const przesuniecie = (data, godz) => {      // strefa Warszawy w dniu wydarzenia: "+01:00" / "+02:00"
+  const t = new Intl.DateTimeFormat("en", { timeZone: "Europe/Warsaw", timeZoneName: "longOffset" })
+    .formatToParts(new Date(`${data}T${godz || "12:00"}:00Z`)).find(p => p.type === "timeZoneName")?.value || "GMT+01:00";
+  return t.replace("GMT", "") || "+00:00";
+};
+const kiedy = (data, godz) => godz ? `${data}T${godz}:00${przesuniecie(data, godz)}` : data;
+const dzisiaj = new Date().toISOString().slice(0, 10);
+const wydarzeniaLd = dane.WYDARZENIA.filter(e => /^\d{4}-\d{2}-\d{2}$/.test(e.data) && e.data >= dzisiaj).map(e => {
+  const cena = Number(String(e.cena).replace(",", ".").match(/\d+(\.\d+)?/)?.[0]);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: e.tytul,
+    startDate: kiedy(e.data, e.od),
+    endDate: e.do ? kiedy(e.data, e.do) : undefined,
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: e.miejsce ? { "@type": "Place", name: e.miejsce, address: e.miejsce } : undefined,
+    description: e.opis || undefined,
+    image: maAdres && e.zdjecie ? adres + e.zdjecie : undefined,
+    organizer: { "@type": "Person", name: "Ewelina Kucharczyk", url: maAdres ? adres : undefined },
+    offers: cena >= 0 && e.cena ? {
+      "@type": "Offer", price: cena, priceCurrency: "PLN", url: maAdres ? `${adres}#wydarzenia` : undefined,
+      availability: e.brak_miejsc ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+    } : undefined,
+  };
+});
+const jsonld = JSON.stringify(wydarzeniaLd.length ? [firma, ...wydarzeniaLd] : firma).replace(/</g, "\\u003c");
+
+/* ---------- polityka prywatności: dane administratora (panel „Dane firmy”) i okres przechowywania ---------- */
+const brak = co => `<span class="brak">[${co} – uzupełnij w panelu „Dane firmy”]</span>`;
+const f = Object.fromEntries(Object.entries(daneFirmy).map(([k, v]) => [k, String(v ?? "").trim()]));
+const emailRodo = f.email || strona.kontakt?.email || "";
+const administratorHtml = [
+  f.imie_nazwisko ? esc(f.imie_nazwisko) : brak("imię i nazwisko"),
+  f.nazwa_dzialalnosci ? `prowadząca działalność „${esc(f.nazwa_dzialalnosci)}”` : "",
+  f.adres ? `adres: ${esc(f.adres)}` : brak("adres"),
+  f.nip ? `NIP ${esc(f.nip)}` : "",
+].filter(Boolean).join(", ");
+{
+  const braki = [!f.imie_nazwisko && "imię i nazwisko", !f.adres && "adres", !emailRodo && "e-mail"].filter(Boolean);
+  if (braki.length) warn(`polityka prywatności: brakuje danych administratora (${braki.join(", ")}) – panel „Dane firmy (polityka prywatności)”`);
+}
+const miesiace = Math.min(60, Math.max(1, Math.round(Number(readJson("content/rezerwacje.json").usuwanie_danych_miesiecy) || 12)));
+const odmiana = n => n === 1 ? "miesiąc" : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? "miesiące" : "miesięcy";
+let obowiazujeOd = "";
+try {   // data ostatniej zmiany treści polityki albo danych firmy (z historii gita)
+  const d = execFileSync("git", ["log", "-1", "--format=%cs", "--", "polityka-prywatnosci.html", "content/firma.json"], { cwd: ROOT, encoding: "utf8" }).trim();
+  if (d) { const [r, m, dz] = d.split("-").map(Number); obowiazujeOd = `${dz} ${["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"][m - 1]} ${r} r.`; }
+} catch {}
+if (!obowiazujeOd) { const d = new Date(); obowiazujeOd = d.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" }) + " r."; }
 
 /* =========================================================
-   7. index.html, 404.html, odwolanie.html i decyzja.html z szablonów
+   7. strony z szablonów
    ========================================================= */
 const view = {
   strona: {
@@ -345,18 +406,40 @@ const view = {
     faq: (oferta.faq || []).map(f => ({ ...f, odpowiedz_html: inline(f.odpowiedz) })),
   },
   galeria,
+  teksty: {
+    ...teksty,
+    kroki: (teksty.rezerwacja_kroki || []).filter(Boolean).map((tekst, i) => ({ nr: i + 1, tekst })),
+  },
+  firma: { administrator_html: administratorHtml, email: emailRodo },
+  rezerwacje: { usuwanie_txt: `${miesiace} ${odmiana(miesiace)}` },
+  obowiazuje_od: obowiazujeOd,
   podglad_v: podgladV,
   jsonld,
 };
-for (const page of ["index.html", "404.html", "odwolanie.html", "decyzja.html"])
+const STRONY = ["index.html", "404.html", "odwolanie.html", "decyzja.html", "polityka-prywatnosci.html", "czcionki.html"];
+for (const page of STRONY)
   fs.writeFileSync(path.join(OUT, page), template(fs.readFileSync(path.join(ROOT, page), "utf8"), view));
+
+/* ---------- mapa strony dla Google (sitemap.xml) i robots.txt – działają w pełni dopiero na własnej domenie ---------- */
+if (maAdres) {
+  const teraz = new Date().toISOString().slice(0, 10);
+  fs.writeFileSync(path.join(OUT, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${esc(adres)}</loc><lastmod>${teraz}</lastmod></url>
+  <url><loc>${esc(adres)}polityka-prywatnosci.html</loc></url>
+</urlset>
+`);
+  // bez „Disallow” – Google musi móc wejść na stronę, żeby zobaczyć „noindex”, gdy strona jeszcze nie jest gotowa
+  fs.writeFileSync(path.join(OUT, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${adres}sitemap.xml\n`);
+}
+if (!strona.pokazuj_w_google) console.log("ℹ strona ukryta przed Google (noindex) – panel: „Strona gotowa – pokazuj ją w Google”");
 
 /* =========================================================
    8. wersje plików: css/x.css → css/x.css?v=<odcisk treści>
       GitHub Pages każe przeglądarce trzymać pliki 10 min – po zmianie pliku zmienia się adres,
       więc przeglądarka nie połączy nowego HTML ze starym JS/CSS.
    ========================================================= */
-for (const page of ["index.html", "polityka-prywatnosci.html", "odwolanie.html", "decyzja.html"]) {
+for (const page of STRONY.filter(p => p !== "404.html")) {
   const f = path.join(OUT, page);
   fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace(/((?:href|src)=")((?:css|js)\/[^"?#]+)"/g, (m, pre, ref) => {
     const abs = path.join(OUT, ref);

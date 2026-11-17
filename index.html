@@ -6,7 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- klasa „js” włącza animacje pojawiania się; bez JavaScriptu treść jest od razu widoczna -->
   <script>document.documentElement.className = "js";</script>
-  <title>{{strona.tytul_strony}}</title>
+  {{^strona.pokazuj_w_google}}<!-- „Strona gotowa – pokazuj ją w Google” odznaczone w panelu -->
+  <meta name="robots" content="noindex">
+  {{/strona.pokazuj_w_google}}<title>{{strona.tytul_strony}}</title>
   <meta name="description" content="{{strona.opis_google}}">
   <!-- podgląd linku (Facebook, Messenger, WhatsApp…) – zdjęcie i adres z panelu, obrazek 1200×630 robi build -->
   {{#strona.adres?}}<link rel="canonical" href="{{strona.adres}}">
@@ -23,13 +25,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <!-- dane firmy dla Google (generuje build z panelu: kontakt, social, ceny pakietów) -->
+  <!-- dane firmy i wydarzeń dla Google (generuje build z panelu: kontakt, social, ceny pakietów, wydarzenia) -->
   <script type="application/ld+json">{{{jsonld}}}</script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <!-- fonty z panelu („Wygląd – czcionki”), hostowane na stronie – generuje build/fonty.mjs -->
+  <link rel="stylesheet" href="css/fonty.css">
 </head>
 <body>
 <a class="skip-link" href="#tresc">Przejdź do treści</a>
@@ -110,7 +110,7 @@
   <div class="container">
     <header class="section__head reveal">
       <p class="eyebrow">Oferta</p>
-      <h2>Sesje i cennik</h2>
+      <h2>{{teksty.oferta_naglowek}}</h2>
       <p class="section__sub">{{oferta.podtytul}}</p>
     </header>
 
@@ -158,8 +158,8 @@
   <div class="container">
     <header class="section__head reveal">
       <p class="eyebrow">Wydarzenia</p>
-      <h2>Spotkajmy się</h2>
-      <p class="section__sub">Warsztaty, plenery i mini-sesje – liczba miejsc ograniczona.</p>
+      <h2>{{teksty.wydarzenia_naglowek}}</h2>
+      {{#teksty.wydarzenia_podtytul?}}<p class="section__sub">{{teksty.wydarzenia_podtytul}}</p>{{/teksty.wydarzenia_podtytul?}}
     </header>
     <div class="events__list" id="events-list"></div>
     <p class="events__newsletter reveal">Nie chcesz przegapić kolejnych warsztatów? <a href="#newsletter">Zapisz się na newsletter</a>.</p>
@@ -171,14 +171,12 @@
   <div class="container">
     <header class="section__head reveal">
       <p class="eyebrow">Rezerwacja</p>
-      <h2>Wybierz termin</h2>
-      <p class="section__sub">Wybierz pakiet i wolny termin – wyślesz prośbę o rezerwację, a ja potwierdzę ją mailowo, zwykle w ciągu 24 godzin.</p>
+      <h2>{{teksty.rezerwacja_naglowek}}</h2>
+      <p class="section__sub">{{teksty.rezerwacja_podtytul}}</p>
     </header>
     <ol class="steps reveal">
-      <li><span>1</span>Wybierz pakiet, dzień i godzinę</li>
-      <li><span>2</span>Podaj dane i wyślij prośbę</li>
-      <li><span>3</span>Potwierdzam termin mailowo</li>
-    </ol>
+      {{#teksty.kroki}}<li><span>{{nr}}</span>{{tekst}}</li>
+      {{/teksty.kroki}}</ol>
     <div class="booking__frame reveal" id="booking"></div>
   </div>
 </section>
@@ -209,10 +207,8 @@
         </select>
       </label>
       <label>Wiadomość<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
-      <label class="form__check">
-        <input type="checkbox" name="rodo" required>
-        <span>Wyrażam zgodę na przetwarzanie moich danych w celu odpowiedzi na wiadomość (<a href="polityka-prywatnosci.html" target="_blank">polityka prywatności</a>).</span>
-      </label>
+      <!-- RODO: podstawą jest odpowiedź na zapytanie (art. 6 ust. 1 lit. b), nie zgoda – dlatego informacja zamiast checkboxa -->
+      <p class="form__info">Wysyłając wiadomość, przekazujesz mi swoje dane, żebym mogła odpowiedzieć. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank">polityce prywatności</a>.</p>
       <input type="text" name="strona" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true"><!-- pułapka na boty -->
       <button type="submit" class="btn">Wyślij wiadomość</button>
       <p class="form__status" id="form-status" role="status"></p>
@@ -230,8 +226,8 @@
         <div class="ml-form-embedBody ml-form-embedBodyDefault row-form">
           <div class="ml-form-embedContent">
             <p class="eyebrow">Newsletter</p>
-            <h2>Bądźmy w kontakcie</h2>
-            <p class="newsletter__lead">Raz na jakiś czas napiszę o wolnych terminach, warsztatach i nowych sesjach. Bez spamu, obiecuję.</p>
+            <h2>{{teksty.newsletter_naglowek}}</h2>
+            <p class="newsletter__lead">{{teksty.newsletter_opis}}</p>
           </div>
 
           <form class="ml-block-form" action="https://assets.mailerlite.com/jsonp/2792924/forms/204026154199287504/subscribe" data-code="" method="post" target="_blank">
@@ -261,8 +257,9 @@
               <p class="newsletter__small">Możesz wypisać się w każdej chwili, klikając link w stopce wiadomości. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank">polityce prywatności</a>.</p>
             </div>
 
+            <!-- reCAPTCHA i skrypt MailerLite ładuje js/main.js dopiero, gdy ktoś zacznie wypełniać formularz
+                 (bez tego każde wejście na stronę łączyło się z Google i MailerLite) -->
             <div class="ml-form-recaptcha ml-validate-required">
-              <script src="https://www.google.com/recaptcha/api.js?hl=pl" async defer></script>
               <div class="g-recaptcha" data-sitekey="6Lf1KHQUAAAAAFNKEX1hdSWCS3mRMv4FlFaNslaD"></div>
             </div>
 
@@ -281,7 +278,7 @@
           <div class="ml-form-successContent">
             <p class="script newsletter__thanks">dziękuję!</p>
             <h2>Jeszcze jeden krok</h2>
-            <p class="newsletter__lead">Sprawdź skrzynkę i kliknij link w wiadomości ode mnie, żeby potwierdzić zapis. Jeśli jej nie widzisz, zajrzyj do spamu lub zakładki „Oferty”.</p>
+            <p class="newsletter__lead">{{teksty.newsletter_po_zapisie}}</p>
           </div>
         </div>
       </div>
@@ -295,12 +292,10 @@
     $('.ml-subscribe-form-48507516 .row-form').hide();
   }
 </script>
-<script src="https://groot.mailerlite.com/js/w/webforms.min.js?v83147fa8ce2d95cb73ece7f28b469519" defer></script>
-<script>fetch("https://assets.mailerlite.com/jsonp/2792924/forms/204026154199287504/takel").catch(() => {});</script>
 </main>
 
 <footer class="footer">
-  <p class="script">dziękuję, że jesteś</p>
+  {{#teksty.stopka_napis?}}<p class="script">{{teksty.stopka_napis}}</p>{{/teksty.stopka_napis?}}
   <div class="footer__social social-icons" data-social></div>
   <p class="footer__copy">© <span id="year"></span> Ewelina Kucharczyk Fotografia · Wszystkie zdjęcia chronione prawem autorskim · <a href="polityka-prywatnosci.html">Polityka prywatności</a></p>
 </footer>

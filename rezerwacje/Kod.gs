@@ -11,6 +11,7 @@
      (strona odwolanie.html na stronie www),
    - co godzinę: wygasza nierozpatrzone prośby, przypomina właścicielowi
      o czekających prośbach i klientom o zbliżającej się sesji,
+   - raz dziennie: usuwa dane klientów z wydarzeń sesji starszych niż usuwanieMiesiecy (RODO),
    - obsługuje formularz kontaktowy ze strony (mail do właściciela
      + automatyczna odpowiedź do klienta).
    Instrukcja wdrożenia: rezerwacje/INSTRUKCJA.md
@@ -37,6 +38,7 @@ const USTAWIENIA = {
   calodniowe: "wszystkie",       // które wydarzenia całodniowe blokują dzień: "wszystkie" | "urlop" (tylko ze słowem urlop/wolne/zajęte)
   wygasanieDni: 3,               // po ilu dniach nierozpatrzona prośba wygasa (0 = nigdy)
   przypomnienieDni: 2,           // ile dni przed sesją klient dostaje przypomnienie (0 = bez przypomnień)
+  usuwanieMiesiecy: 12,          // po ilu miesiącach od sesji usuwać dane klienta z wydarzenia (RODO, polityka prywatności)
   pakiety: {                     // nadpisywane przez content/oferta.json (build dopisuje je do rezerwacje.json)
     S: { nazwa: "Sesja S", minut: 30 },
     M: { nazwa: "Sesja M", minut: 50 },
@@ -46,10 +48,13 @@ const USTAWIENIA = {
   kalendarzeZajete: ["primary"],
   // Kalendarz, do którego trafiają rezerwacje.
   kalendarzRezerwacji: "primary",
-  kontaktDziennie: 40,           // maks. wiadomości z formularza na dobę (ochrona limitu Gmaila ~100/dobę)
+  kontaktDziennie: 20,           // maks. wiadomości z formularza na dobę (ochrona limitu Gmaila ~100/dobę)
   kontaktNaEmail: 5,             // maks. wiadomości z jednego adresu na dobę
   rezerwacjeNaEmail: 3,          // maks. próśb o rezerwację z jednego adresu na dobę
+  rezerwacjeDziennie: 10,        // maks. próśb o rezerwację łącznie na dobę (bot nie zajmie wszystkich terminów)
   autoodpowiedz: "Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.\n\nJeśli chcesz coś dopisać, po prostu odpowiedz na tego maila.",
+  mailProsba: "Termin jest wstępnie zarezerwowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.",
+  mailPotwierdzenie: "Szczegóły i miejsce sesji ustalimy mailowo lub telefonicznie.",
   podpis: "Ewelina Kucharczyk · Fotografia",
   // Adres strony. Po zmianie domeny NIE trzeba zmieniać kodu: Ustawienia projektu → Właściwości skryptu →
   // dodaj „stronaWww” = nowy adres z ukośnikiem na końcu (patrz INSTRUKCJA.md, „Przeprowadzka”).
@@ -94,9 +99,12 @@ function wczytajUstawienia_() {
   ust("odwolanieNajpozniejGodzin", "odwolanie_najpozniej_godzin", 0, 720);
   ust("wygasanieDni", "wygasanie_dni", 0, 30);
   ust("przypomnienieDni", "przypomnienie_dni", 0, 14);
+  ust("usuwanieMiesiecy", "usuwanie_danych_miesiecy", 1, 60);
   if (typeof u.swieta_wolne === "boolean") USTAWIENIA.swietaWolne = u.swieta_wolne;
   if (u.calodniowe === "wszystkie" || u.calodniowe === "urlop") USTAWIENIA.calodniowe = u.calodniowe;
   if (typeof u.autoodpowiedz === "string" && u.autoodpowiedz.trim()) USTAWIENIA.autoodpowiedz = u.autoodpowiedz.trim();
+  if (typeof u.mail_prosba === "string" && u.mail_prosba.trim()) USTAWIENIA.mailProsba = tekst_(u.mail_prosba, 2000);
+  if (typeof u.mail_potwierdzenie === "string" && u.mail_potwierdzenie.trim()) USTAWIENIA.mailPotwierdzenie = tekst_(u.mail_potwierdzenie, 2000);
 
   // pakiety z cennika: [{id, nazwa, minut}]
   if (Array.isArray(u.pakiety)) {
@@ -147,17 +155,17 @@ function doPost(e) {
 /* ---------------- formularz kontaktowy ---------------- */
 function kontakt_(d) {
   const imie = tekst_(d.imie, 80), email = tekst_(d.email, 120), rodzaj = tekst_(d.rodzaj, 80), wiadomosc = tekst_(d.wiadomosc, 5000);
-  if (!imie || !wiadomosc || !poprawnyEmail_(email) || !d.zgoda) return { ok: false, blad: "dane" };
+  if (!imie || !wiadomosc || !poprawnyEmail_(email)) return { ok: false, blad: "dane" };
   if (MailApp.getRemainingDailyQuota() < 2) return { ok: false, blad: "poczta" };
 
   // limity: z jednego adresu i łącznie na dobę (pod blokadą, żeby równoległe wysyłki ich nie ominęły)
   const kluczEmail = "kontakt_" + email.toLowerCase();
-  const kluczDzien = "kontakt_" + fmt_(new Date(), "yyyy-MM-dd");
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return { ok: false, blad: "serwer" };
   try {
-    if (licznik_(kluczEmail) >= USTAWIENIA.kontaktNaEmail || licznik_(kluczDzien) >= USTAWIENIA.kontaktDziennie) return { ok: false, blad: "limit" };
-    zwieksz_(kluczEmail); zwieksz_(kluczDzien);
+    if (licznikDnia_("kontaktDzien") >= USTAWIENIA.kontaktDziennie) return { ok: false, blad: "limitDzienny" };
+    if (licznik_(kluczEmail) >= USTAWIENIA.kontaktNaEmail) return { ok: false, blad: "limit" };
+    zwieksz_(kluczEmail); zwiekszDnia_("kontaktDzien");
   } finally { lock.releaseLock(); }
 
   try {
@@ -166,7 +174,7 @@ function kontakt_(d) {
       replyTo: email,
       name: "Strona – formularz kontaktowy",
       subject: "Wiadomość ze strony: " + imie + (rodzaj ? " – " + rodzaj : ""),
-      htmlBody: mail_("Nowa wiadomość ze strony",
+      htmlBody: mailWlasciciela_("Nowa wiadomość ze strony",
         "<p><b>" + esc_(imie) + "</b> &lt;<a href='mailto:" + esc_(email) + "'>" + esc_(email) + "</a>&gt;</p>" +
         (rodzaj ? "<p>Temat: <b>" + esc_(rodzaj) + "</b></p>" : "") +
         "<p style='white-space:pre-wrap;background:#f1e9dc;padding:14px 16px;border-radius:4px'>" + esc_(wiadomosc) + "</p>" +
@@ -176,14 +184,15 @@ function kontakt_(d) {
     console.error(err);
     return { ok: false, blad: "poczta" };
   }
-  // Automatyczna odpowiedź – bez treści wiadomości (żeby formularz nie służył do rozsyłania spamu).
+  // Automatyczna odpowiedź – bez treści wiadomości i bez imienia z formularza (adres nie jest sprawdzony – ktoś
+  // mógłby wpisać cudzy e-mail i reklamę w polu „imię”; formularz nie może służyć do rozsyłania spamu).
   // Jej błąd nie psuje wysyłki: właściciel wiadomość już ma.
   wyslijBezpiecznie_({
     to: email,
     replyTo: wlasciciel_(),
     name: USTAWIENIA.podpis,
     subject: "Dziękuję za wiadomość",
-    htmlBody: mail_("Dziękuję, " + esc_(imie.slice(0, 40)) + "!",
+    htmlBody: mail_("Dziękuję za wiadomość!",
       akapity_(USTAWIENIA.autoodpowiedz)),
   });
   return { ok: true };
@@ -281,7 +290,7 @@ function zarezerwuj_(d) {
   const pak = USTAWIENIA.pakiety[d.pakiet];
   const imie = tekst_(d.imie, 80), email = tekst_(d.email, 120), telefon = tekst_(d.telefon, 40), uwagi = tekst_(d.uwagi, 1500);
   if (!pak || !/^\d{4}-\d{2}-\d{2}$/.test(d.data || "") || !/^\d{2}:\d{2}$/.test(d.godzina || "")) return { ok: false, blad: "dane" };
-  if (!imie || !poprawnyEmail_(email) || !d.zgoda) return { ok: false, blad: "dane" };
+  if (!imie || !poprawnyEmail_(email)) return { ok: false, blad: "dane" };
   // Bez wolnych maili nie zakładamy wydarzenia – inaczej termin byłby zablokowany, a nikt by o tym nie wiedział.
   if (MailApp.getRemainingDailyQuota() < 2) return { ok: false, blad: "poczta" };
 
@@ -289,6 +298,7 @@ function zarezerwuj_(d) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(15000)) return { ok: false, blad: "zajete" };
   try {
+    if (licznikDnia_("rezerwacjeDzien") >= USTAWIENIA.rezerwacjeDziennie) return { ok: false, blad: "limitDzienny" };
     if (licznik_(kluczLimitu) >= USTAWIENIA.rezerwacjeNaEmail) return { ok: false, blad: "limit" };
     const start = data_(d.data, d.godzina);
     const koniec = new Date(start.getTime() + pak.minut * 60e3);
@@ -331,7 +341,7 @@ function zarezerwuj_(d) {
         to: wlasciciel_(),
         replyTo: email,
         subject: "Nowa prośba o rezerwację: " + pak.nazwa + ", " + kiedy,
-        htmlBody: mail_("Nowa prośba o rezerwację",
+        htmlBody: mailWlasciciela_("Nowa prośba o rezerwację",
           "<p><b>" + esc_(imie) + "</b> prosi o termin:</p>" +
           "<p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
           "<p>E-mail: <a href='mailto:" + esc_(email) + "'>" + esc_(email) + "</a><br>Telefon: " + esc_(telefon || "–") + "</p>" +
@@ -343,15 +353,16 @@ function zarezerwuj_(d) {
           "<p style='color:#7a6a5b;font-size:13px'>Możesz też po prostu odpowiedzieć na tego maila – trafi do klienta.</p>"),
       });
       // Mail do klienta: jeśli się nie uda, prośba i tak jest u właściciela – nie cofamy jej.
+      // Bez imienia z formularza – adres nie jest jeszcze sprawdzony (patrz autoodpowiedź w kontakt_).
       wyslijBezpiecznie_({
         to: email,
         replyTo: wlasciciel_(),
         name: USTAWIENIA.podpis,
         subject: "Otrzymałam Twoją prośbę o rezerwację – " + kiedy,
-        htmlBody: mail_("Dziękuję, " + esc_(imie) + "!",
+        htmlBody: mail_("Dziękuję za prośbę o rezerwację!",
           "<p>Otrzymałam prośbę o rezerwację:</p>" +
           "<p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
-          "<p>Termin jest wstępnie zarezerwowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.</p>" +
+          akapity_(USTAWIENIA.mailProsba) +
           "<p>Jeśli masz pytania, po prostu odpowiedz na tę wiadomość.</p>" + stopkaOdwolania_(ev.getId(), tokenK)),
       });
     } catch (err) {
@@ -362,6 +373,7 @@ function zarezerwuj_(d) {
     }
 
     zwieksz_(kluczLimitu);
+    zwiekszDnia_("rezerwacjeDzien");
     zmianaTerminow_();
     return { ok: true };
   } finally {
@@ -423,7 +435,7 @@ function wykonajDecyzje_(id, token, akcja, wiadomosc) {
       subject: "Potwierdzam termin sesji – " + kiedy,
       htmlBody: mail_("Do zobaczenia, " + esc_(imie) + "!",
         "<p>Potwierdzam Twoją rezerwację:</p><p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
-        dopisek + "<p>Szczegóły i miejsce sesji ustalimy mailowo lub telefonicznie.</p>" +
+        dopisek + akapity_(USTAWIENIA.mailPotwierdzenie) +
         stopkaOdwolania_(ev.getId(), ev.getTag("tokenK"))),
     });
     return ok ? "Rezerwacja potwierdzona ✔" : "Rezerwacja potwierdzona" + nieDoszedl;
@@ -487,7 +499,7 @@ function odwolaj_(id, token, powod) {
       MailApp.sendEmail({
         to: wlasciciel_(), replyTo: email,
         subject: "Klient odwołał rezerwację: " + pak.nazwa + ", " + kiedy,
-        htmlBody: mail_("Odwołana rezerwacja",
+        htmlBody: mailWlasciciela_("Odwołana rezerwacja",
           "<p><b>" + esc_(imie) + "</b> &lt;" + esc_(email) + "&gt; odwołał(a) " + byla + " rezerwację:</p>" +
           "<p style='font-size:18px'><b>" + esc_(pak.nazwa) + "</b> · " + esc_(kiedy) + "</p>" +
           "<p>Powód: " + (powod ? esc_(powod).replace(/\n/g, "<br>") : "–") + "</p>" +
@@ -595,6 +607,11 @@ function zadaniaCykliczne() {
     });
     if (zmiana) zmianaTerminow_();
 
+    // RODO: raz dziennie usuwamy dane klientów z wydarzeń sesji starszych niż usuwanieMiesiecy
+    if (props.getProperty("czyszczenieDzien") !== dzis) {
+      try { usunStareDane_(kal, teraz); props.setProperty("czyszczenieDzien", dzis); } catch (err) { console.error(err); }
+    }
+
     // podsumowanie dla właściciela: raz dziennie (wygasłe – od razu, żeby wiedział, że termin się zwolnił)
     const raportDzis = props.getProperty("raportDzien") === dzis;
     const pokazCzekajace = czekajace.length && godzina >= 8 && !raportDzis;
@@ -602,7 +619,7 @@ function zadaniaCykliczne() {
       const ok = wyslijBezpiecznie_({
         to: wlasciciel_(),
         subject: (wygasle.length ? "Wygasłe prośby o rezerwację: " + wygasle.length : "Prośby o rezerwację czekają na decyzję: " + czekajace.length),
-        htmlBody: mail_("Rezerwacje – do zrobienia",
+        htmlBody: mailWlasciciela_("Rezerwacje – do zrobienia",
           (pokazCzekajace ? "<h3>Czekają na Twoją decyzję (ponad 24 godziny)</h3>" + czekajace.join("") +
             (USTAWIENIA.wygasanieDni ? "<p style='color:#7a6a5b;font-size:13px'>Prośby nierozpatrzone przez " + dni_(USTAWIENIA.wygasanieDni) +
               " wygasają automatycznie.</p>" : "") : "") +
@@ -616,6 +633,28 @@ function zadaniaCykliczne() {
   }
 }
 
+// Wydarzenia sesji, które skończyły się ponad usuwanieMiesiecy temu: zostaje „📷 <pakiet>” i informacja,
+// znikają imię, e-mail, telefon, uwagi i kody z linków (strony decyzji i odwołania pokażą „nie znaleziono”).
+function usunStareDane_(kal, teraz) {
+  const granica = new Date(teraz.getTime());
+  granica.setMonth(granica.getMonth() - USTAWIENIA.usuwanieMiesiecy);
+  const dzis = fmt_(teraz, "yyyy-MM-dd");
+  let ile = 0;
+  kal.getEvents(new Date(granica.getTime() - 400 * 86400e3), granica).forEach(ev => {
+    try {
+      if (ev.getTag("rezerwacja") !== "potwierdzona" || ev.getEndTime() > granica) return;
+      ev.setTitle("📷 " + pakiet_(ev).nazwa);
+      ev.setDescription("Sesja zrealizowana. Dane klienta usunięte automatycznie " + dzis +
+        " (po " + USTAWIENIA.usuwanieMiesiecy + " mies. – polityka prywatności).");
+      ["imie", "email", "token", "tokenK", "przypomnienie"].forEach(k => { if (ev.getTag(k) !== null) ev.deleteTag(k); });
+      ev.setTag("rezerwacja", "zanonimizowana");
+      ile++;
+    } catch (err) { console.error(err); }
+  });
+  if (ile) console.log("Usunięto dane klientów z " + ile + " starych sesji.");
+  return ile;
+}
+
 function opisRezerwacji_(ev) {
   return "<p style='margin:14px 0 4px'><b>" + esc_(pakiet_(ev).nazwa) + "</b> · " + esc_(opisTerminu_(ev.getStartTime(), ev.getEndTime())) + "<br>" +
     esc_(ev.getTag("imie")) + " &lt;" + esc_(ev.getTag("email")) + "&gt;</p>";
@@ -624,7 +663,7 @@ function mailWygasniecia_(ev) {
   return wyslijBezpiecznie_({
     to: ev.getTag("email"), replyTo: wlasciciel_(), name: USTAWIENIA.podpis,
     subject: "Termin sesji nie został potwierdzony – " + opisTerminu_(ev.getStartTime(), ev.getEndTime()),
-    htmlBody: mail_("Dzień dobry, " + esc_(ev.getTag("imie")),
+    htmlBody: mail_("Dzień dobry!",
       "<p>Bardzo przepraszam – nie udało mi się na czas potwierdzić Twojej prośby o rezerwację:</p>" +
       "<p style='font-size:18px'><b>" + esc_(pakiet_(ev).nazwa) + "</b> · " + esc_(opisTerminu_(ev.getStartTime(), ev.getEndTime())) + "</p>" +
       "<p>Wstępna rezerwacja wygasła i termin został zwolniony. Jeśli nadal chcesz się umówić, odpowiedz proszę na tego maila " +
@@ -704,6 +743,14 @@ function poprawnyEmail_(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function wyslijBezpiecznie_(opcje) {
   try { MailApp.sendEmail(opcje); return true; } catch (err) { console.error(err); return false; }
 }
+// liczniki dzienne łączne (właściwości skryptu – nie znikają jak pamięć podręczna), zmieniane tylko pod blokadą
+function licznikDnia_(nazwa) {
+  const [dzien, n] = String(PropertiesService.getScriptProperties().getProperty(nazwa) || "").split("|");
+  return dzien === fmt_(new Date(), "yyyy-MM-dd") ? Number(n) || 0 : 0;
+}
+function zwiekszDnia_(nazwa) {
+  PropertiesService.getScriptProperties().setProperty(nazwa, fmt_(new Date(), "yyyy-MM-dd") + "|" + (licznikDnia_(nazwa) + 1));
+}
 // liczniki limitów (pamięć podręczna, 24 h) – zmieniane tylko pod blokadą
 function licznik_(klucz) { return Number(CacheService.getScriptCache().get(klucz) || 0); }
 function zwieksz_(klucz) { CacheService.getScriptCache().put(klucz, String(licznik_(klucz) + 1), 86400); }
@@ -728,10 +775,14 @@ function tekst_(s, max) { return String(s || "").trim().slice(0, max); }
 function esc_(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-function mail_(naglowek, html) {
+// mail do klienta (ze stopką o prywatności) / do właściciela (bez niej)
+function mailWlasciciela_(naglowek, html) { return mail_(naglowek, html, true); }
+function mail_(naglowek, html, bezPolityki) {
   return "<div style='font-family:Georgia,serif;color:#3f3228;max-width:560px'>" +
     "<h2 style='font-weight:500'>" + naglowek + "</h2>" + html +
-    "<p style='margin-top:28px;color:#7a6a5b'>— " + USTAWIENIA.podpis + "<br><a href='" + USTAWIENIA.stronaWww + "'>" + USTAWIENIA.stronaWww + "</a></p></div>";
+    "<p style='margin-top:28px;color:#7a6a5b'>— " + USTAWIENIA.podpis + "<br><a href='" + USTAWIENIA.stronaWww + "'>" + USTAWIENIA.stronaWww + "</a></p>" +
+    (bezPolityki ? "" : "<p style='color:#9a8b7b;font-size:12px'>Twoje dane przetwarzam tylko w celu odpowiedzi i obsługi rezerwacji – szczegóły w <a href='" +
+    USTAWIENIA.stronaWww + "polityka-prywatnosci.html' style='color:#9a8b7b'>polityce prywatności</a>.</p>") + "</div>";
 }
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);

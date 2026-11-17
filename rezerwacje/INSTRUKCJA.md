@@ -34,7 +34,8 @@ Maile do klientów wychodzą z tego konta.
 ## Zmiany w ustawieniach
 Na co dzień – w panelu Pages CMS, bez ponownego wdrażania (skrypt widzi zmiany po ok. 5 minutach od publikacji):
 - **„Rezerwacje – godziny i zasady”**: wstrzymanie rezerwacji (urlop), dni i godziny, przerwy, wyprzedzenie,
-  odwoływanie, święta, wydarzenia całodniowe, wygasanie próśb, przypomnienia, autoodpowiedź formularza.
+  odwoływanie, święta, wydarzenia całodniowe, wygasanie próśb, przypomnienia, autoodpowiedź formularza,
+  teksty maili do klienta (po prośbie i po potwierdzeniu), po ilu miesiącach usuwać dane klientów (RODO).
 - **„Oferta i cennik”**: nazwy i czas sesji pakietów S/M/L (trafiają do kalendarza i maili).
 
 Wartości w `USTAWIENIA` na górze `Kod.gs` to tylko zapas, gdyby strona była niedostępna.
@@ -59,6 +60,10 @@ Wartości w `USTAWIENIA` na górze `Kod.gs` to tylko zapas, gdyby strona była n
   tylko ze słowem „urlop”, „wolne”, „zajęte” albo „niedostępna” – żeby „Imieniny mamy” nie blokowały).
   Święta ustawowe są domyślnie bez rezerwacji.
 - Strona nie widzi treści wydarzeń z kalendarza – tylko wolne godziny.
+- Limity ochronne: formularz kontaktowy – 5 wiadomości z jednego adresu i 20 łącznie na dobę; rezerwacje – 3 prośby
+  z jednego adresu i 10 łącznie na dobę (w `USTAWIENIA` w `Kod.gs`). Po przekroczeniu strona prosi o kontakt mailowy.
+- RODO: raz dziennie skrypt usuwa dane klientów (imię, e-mail, telefon, uwagi) z wydarzeń sesji starszych niż ustawiona
+  liczba miesięcy (domyślnie 12) – zostaje „📷 <pakiet>” i notka „Sesja zrealizowana”.
 - Limit Google: ok. 100 maili dziennie (każda rezerwacja to 2–3 maile). Gdy limit się wyczerpie, strona prosi klienta
   o kontakt mailowy zamiast zakładać rezerwację, o której nikt by się nie dowiedział.
 
@@ -73,3 +78,16 @@ Zrobić najlepiej zanim pojawią się prawdziwe rezerwacje – linki w wysłanyc
 5. Stary projekt skryptu (konto Adriana): sesje zarezerwowane wcześniej są w kalendarzu Adriana, a strona www po zmianie
    `rezerwacjeUrl` pyta już nowy skrypt – ich linki odwołania i decyzji przestaną działać. Przeprowadzkę robić, gdy nie ma
    aktywnych rezerwacji (albo obsłużyć je ręcznie), potem usunąć stary wyzwalacz i wdrożenie.
+
+## Ktoś prosi o swoje dane albo o ich usunięcie (RODO)
+Na odpowiedź jest **miesiąc**. Odpisz z tej samej skrzynki, na którą przyszła prośba.
+Dane tej osoby mogą być w czterech miejscach – przeszukaj je po adresie e-mail:
+1. **Kalendarz Google** – wyszukaj adres e-mail lub imię (lupa u góry). W opisie wydarzenia sesji są imię, e-mail, telefon
+   i uwagi. Przy usuwaniu: wydarzenie przyszłej sesji odwołaj przyciskiem z maila (klient dostanie wiadomość), przeszłej –
+   usuń albo skasuj dane z opisu.
+2. **Gmail** – wyszukaj adres e-mail; usuń wiadomości (też z Kosza), chyba że są potrzebne do rozliczeń.
+3. **MailerLite** (newsletter) – Subskrybenci → wyszukaj → Usuń (albo „Wypisz”, jeśli chce tylko przestać dostawać newsletter).
+4. **Dokumenty księgowe** (rachunki, faktury) – tych usuwać nie wolno przez 5 lat; napisz to w odpowiedzi.
+
+Prośba o **dostęp** do danych: wypisz, co masz (z punktów 1–4) i odeślij w mailu.
+Stare wiadomości z formularza warto raz w roku przejrzeć i usunąć te sprzed ponad 12 miesięcy (tak obiecuje polityka prywatności).

@@ -19,5 +19,8 @@
   "calodniowe": "wszystkie",
   "wygasanie_dni": 3,
   "przypomnienie_dni": 2,
-  "autoodpowiedz": "Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.\n\nJeśli chcesz coś dopisać, po prostu odpowiedz na tego maila."
+  "autoodpowiedz": "Otrzymałam Twoją wiadomość i odpowiem najszybciej, jak to możliwe – zwykle w ciągu 1–2 dni.\n\nJeśli chcesz coś dopisać, po prostu odpowiedz na tego maila.",
+  "mail_prosba": "Termin jest wstępnie zarezerwowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.",
+  "mail_potwierdzenie": "Szczegóły i miejsce sesji ustalimy mailowo lub telefonicznie.",
+  "usuwanie_danych_miesiecy": 12
 }

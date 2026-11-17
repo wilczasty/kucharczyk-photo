@@ -14,7 +14,7 @@
       e.preventDefault();
       status.className = "form__status";
       if (!form.checkValidity()) {
-        status.textContent = "Uzupełnij wszystkie pola i zaznacz zgodę.";
+        status.textContent = "Uzupełnij imię, poprawny e-mail i wiadomość.";
         status.classList.add("err");
         form.querySelector(":invalid")?.focus();
         return;
@@ -28,7 +28,8 @@
       const dane = {
         akcja: "kontakt",
         imie: f.name, email: f.email, rodzaj: f.session_type, wiadomosc: f.message,
-        zgoda: !!f.rodo, strona: f.strona || "",
+        strona: f.strona || "",
+        zgoda: true,   // tylko dla starej wersji skryptu (sprzed W9) – nowa tego pola nie sprawdza; można usunąć po wdrożeniu
       };
       status.textContent = "Wysyłanie…";
       btn.disabled = true;
@@ -43,6 +44,7 @@
       } catch (err) {
         status.textContent = {
           limit: "Wysłano już kilka wiadomości z tego adresu – napisz proszę bezpośrednio na maila.",
+          limitDzienny: "Formularz przyjął dziś już bardzo dużo wiadomości – napisz proszę bezpośrednio na maila.",
           poczta: "Formularz chwilowo nie może wysłać wiadomości – napisz proszę bezpośrednio na maila albo spróbuj jutro.",
         }[err.message] || "Ups, coś poszło nie tak. Napisz proszę bezpośrednio na maila.";
         status.classList.add("err");
@@ -283,15 +285,66 @@
   });
 
   /* ---------- rezerwacja: własny kalendarz (js/rezerwacje.js + rezerwacje/Kod.gs) ---------- */
+  // Kalendarz uruchamia się, gdy sekcja jest blisko ekranu – zapytanie o wolne terminy (do Google) nie idzie
+  // od każdego, kto tylko otworzy stronę, i nie zużywa limitów skryptu.
   czesc("rezerwacje", () => {
     const booking = $("#booking");
     const demoRez = new URLSearchParams(location.search).get("rezerwacje") === "demo";
     // „Przyjmuję rezerwacje online” odznaczone w panelu → komunikat z panelu zamiast kalendarza
     const wstrzymane = cfg.rezerwacjeWstrzymane && !demoRez;
-    if (wstrzymane || !((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg))) {
-      if (window.pokazBrakRezerwacji) window.pokazBrakRezerwacji(booking, cfg, wstrzymane);
-      else booking.innerHTML = `<div class="booking__placeholder"><p>Rezerwacje chwilowo niedostępne – <a href="#kontakt">napisz do mnie</a>.</p></div>`;
-    }
+    const start = () => {
+      if (wstrzymane || !((cfg.rezerwacjeUrl || demoRez) && window.initRezerwacje && window.initRezerwacje(booking, cfg))) {
+        if (window.pokazBrakRezerwacji) window.pokazBrakRezerwacji(booking, cfg, wstrzymane);
+        else booking.innerHTML = `<div class="booking__placeholder"><p>Rezerwacje chwilowo niedostępne – <a href="#kontakt">napisz do mnie</a>.</p></div>`;
+      }
+    };
+    if (!("IntersectionObserver" in window)) return start();
+    // obserwacja dopiero po wczytaniu strony – wcześniej (bez zdjęć) strona jest krótka i sekcja „wydaje się” blisko
+    const obserwuj = () => {
+      const obs = new IntersectionObserver(en => {
+        if (en.some(e => e.isIntersecting)) { obs.disconnect(); start(); }
+      }, { rootMargin: "600px 0px" });
+      obs.observe(booking);
+    };
+    if (document.readyState === "complete") obserwuj();
+    else window.addEventListener("load", obserwuj, { once: true });
+  });
+
+  /* ---------- newsletter: reCAPTCHA i skrypt MailerLite dopiero przy pierwszym użyciu formularza ---------- */
+  // (RODO / prawo telekomunikacyjne: bez tego każde wejście na stronę łączyło się z Google i MailerLite)
+  czesc("newsletter", () => {
+    const form = $(".ml-block-form");
+    if (!form) return;
+    const SKRYPTY = [
+      "https://www.google.com/recaptcha/api.js?hl=pl",
+      "https://groot.mailerlite.com/js/w/webforms.min.js?v83147fa8ce2d95cb73ece7f28b469519",
+    ];
+    let zaladowane = false;
+    const zaladuj = () => {
+      if (zaladowane) return;
+      zaladowane = true;
+      SKRYPTY.forEach(src => {
+        const s = document.createElement("script");
+        s.src = src; s.async = true;
+        document.head.appendChild(s);
+      });
+    };
+    ["focusin", "pointerdown", "touchstart"].forEach(ev => form.addEventListener(ev, zaladuj, { once: true, passive: true }));
+    // wysłanie, zanim skrypty się wczytały (np. Enter od razu) – bez tego formularz otworzyłby surową odpowiedź MailerLite
+    form.addEventListener("submit", e => {
+      if (window.ml_jQuery && window.grecaptcha) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      zaladuj();
+      let info = form.querySelector(".newsletter__czekaj");
+      if (!info) {
+        info = document.createElement("p");
+        info.className = "newsletter__small newsletter__czekaj";
+        info.setAttribute("role", "status");
+        form.querySelector(".ml-form-embedSubmit")?.before(info);
+      }
+      info.textContent = "Chwileczkę – wczytuję zabezpieczenie formularza. Zaznacz „Nie jestem robotem” i kliknij jeszcze raz.";
+    }, true);
   });
 
   /* ---------- kontakt i ikony social ---------- */

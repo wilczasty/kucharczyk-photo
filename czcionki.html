@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- Podgląd czcionek do wyboru w panelu („Wygląd – czcionki”). Strona dla Eweliny – nie ma do niej linku i nie jest w Google.
+     Wyjątkowo wczytuje fonty prosto z Google Fonts (żeby pokazać wszystkie); sama strona główna używa tylko wybranych, z własnego serwera. -->
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Podgląd czcionek · Ewelina Kucharczyk Fotografia</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/fonty.css">
+  <style>
+    .cz { max-width: 980px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+    .cz h2 { margin-top: 3rem; }
+    .cz__lista { display: grid; gap: 1rem; }
+    .cz__font { background: var(--linen); border-radius: var(--radius); padding: 1.1rem 1.3rem; border: 2px solid transparent; }
+    .cz__font.is-wybrany { border-color: var(--olive); }
+    .cz__nazwa { font: 400 .75rem/1.4 var(--sans); letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin: 0 0 .4rem; }
+    .cz__nazwa b { color: var(--olive); font-weight: 500; }
+    .cz__probka { margin: 0; overflow-wrap: anywhere; }
+    .cz__probka--naglowki { font-size: 2.3rem; line-height: 1.2; font-weight: 500; }
+    .cz__probka--tekst { font-size: 1.05rem; line-height: 1.7; font-weight: 300; }
+    .cz__probka--odreczny { font-size: 2rem; line-height: 1.3; color: var(--wood); }
+    .cz__inny { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: 1rem 0 0; }
+    .cz__inny input { font: 300 1rem var(--sans); padding: .6rem .8rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); min-width: 16rem; }
+    .cz__blad { color: #a2412c; font-size: .9rem; }
+  </style>
+</head>
+<body>
+<main class="cz">
+  <p><a href="./">← wróć na stronę</a></p>
+  <p class="script">podgląd czcionek</p>
+  <h1>Którą czcionkę wybrać?</h1>
+  <p>Wybraną czcionkę ustawiasz w panelu: <b>„Wygląd – czcionki”</b>. Zielona ramka = czcionka używana teraz na stronie.
+    Możesz też wpisać dowolną nazwę z <a href="https://fonts.google.com/?subset=latin-ext" target="_blank" rel="noopener">fonts.google.com</a>
+    w polu niżej, żeby ją zobaczyć – i wpisać ją w panelu w polu „inny font”.</p>
+  <div id="podglad"></div>
+  <noscript><p>Ta strona potrzebuje JavaScriptu.</p></noscript>
+</main>
+<script src="js/dane.js"></script>
+<script src="js/wspolne.js"></script>
+<script>
+(() => {
+  const { esc } = window.EK;
+  const F = window.FONTY || { polecane: {}, wybrane: {} };
+  const PROBKI = {
+    naglowki: "Zatrzymane chwile – sesja rodzinna 490 zł",
+    tekst: "Zażółć gęślą jaźń. Naturalne, ciepłe zdjęcia pełne emocji – sesje rodzinne, dziecięce i kobiece w plenerze. Odpowiadam zwykle w ciągu 24 godzin.",
+    odreczny: "dziękuję, że jesteś! zażółć gęślą jaźń",
+  };
+  const TYTULY = { naglowki: "Nagłówki", tekst: "Tekst", odreczny: "Napisy odręczne" };
+  const wczytane = new Set();
+  const wczytaj = nazwa => {
+    if (wczytane.has(nazwa)) return;
+    wczytane.add(nazwa);
+    const l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(nazwa).replace(/%20/g, "+")}:wght@300;400;500&display=swap`;
+    // nie każdy font ma grubości 300–500 – wtedy wersja podstawowa
+    l.onerror = () => { const z = l.cloneNode(); z.onerror = null; z.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(nazwa).replace(/%20/g, "+")}&display=swap`; document.head.appendChild(z); };
+    document.head.appendChild(l);
+  };
+  const karta = (rola, nazwa, tekst) => `
+    <div class="cz__font${F.wybrane[rola] === nazwa ? " is-wybrany" : ""}">
+      <p class="cz__nazwa">${esc(nazwa)}${F.wybrane[rola] === nazwa ? " · <b>teraz na stronie</b>" : ""}</p>
+      <p class="cz__probka cz__probka--${rola}" style="font-family:'${esc(nazwa)}', serif">${esc(tekst)}</p>
+    </div>`;
+  const root = document.getElementById("podglad");
+  Object.keys(TYTULY).forEach(rola => {
+    const lista = F.polecane[rola] || [];
+    if (F.wybrane[rola] && !lista.includes(F.wybrane[rola])) lista.unshift(F.wybrane[rola]);
+    lista.forEach(wczytaj);
+    const sekcja = document.createElement("section");
+    sekcja.innerHTML = `<h2>${TYTULY[rola]}</h2>
+      <div class="cz__lista">${lista.map(n => karta(rola, n, PROBKI[rola])).join("")}</div>
+      <form class="cz__inny"><input type="text" placeholder="np. Playfair Display" aria-label="Nazwa fontu z Google Fonts">
+        <button class="btn btn--outline" type="submit">Pokaż</button><span class="cz__blad" role="status"></span></form>
+      <div class="cz__lista cz__wlasne" style="margin-top:1rem"></div>`;
+    const form = sekcja.querySelector("form");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const nazwa = form.querySelector("input").value.replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ").trim();
+      if (!nazwa) return;
+      wczytaj(nazwa);
+      sekcja.querySelector(".cz__wlasne").insertAdjacentHTML("afterbegin", karta(rola, nazwa, PROBKI[rola]));
+      const blad = form.querySelector(".cz__blad");
+      blad.textContent = "";
+      // jeśli po chwili Google nie podał takiego fontu, nazwa jest prawdopodobnie błędna
+      setTimeout(() => {
+        const jest = document.fonts && [...document.fonts].some(f => f.family.replace(/["']/g, "") === nazwa);
+        if (!jest) blad.textContent = `Nie znalazłam fontu „${nazwa}” – sprawdź pisownię na fonts.google.com (wielkość liter ma znaczenie).`;
+      }, 2500);
+    });
+    root.appendChild(sekcja);
+  });
+})();
+</script>
+</body>
+</html>

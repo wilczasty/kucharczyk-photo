@@ -464,14 +464,38 @@ content:
           max: 14
       - name: autoodpowiedz
         label: Automatyczna odpowiedź na wiadomość z formularza kontaktowego
-        description: Klient dostaje ją od razu po wysłaniu formularza. Pusta linia = nowy akapit. Na górze „Dziękuję, <imię>!”, na dole podpis.
+        description: Klient dostaje ją od razu po wysłaniu formularza. Pusta linia = nowy akapit. Na górze „Dziękuję za wiadomość!”, na dole podpis.
         type: text
+      - name: mail_prosba
+        label: Mail do klienta po wysłaniu prośby o rezerwację
+        description: >-
+          Pod nazwą pakietu i terminem. Np. kiedy potwierdzisz termin, czy trzeba wpłacić zadatek. Pusta linia = nowy akapit.
+        type: text
+      - name: mail_potwierdzenie
+        label: Mail do klienta po potwierdzeniu rezerwacji
+        description: Pod nazwą pakietu i terminem (i Twoją ewentualną wiadomością). Np. jak ustalicie miejsce sesji, zadatek. Pusta linia = nowy akapit.
+        type: text
+      - name: usuwanie_danych_miesiecy
+        label: Po ilu miesiącach od sesji usuwać dane klienta z kalendarza
+        description: >-
+          RODO: danych nie wolno trzymać bez końca. Po tym czasie z wydarzenia sesji znikają imię, e-mail, telefon i uwagi
+          (zostaje „Sesja zrealizowana”). Ten sam okres jest wpisany w polityce prywatności.
+        type: number
+        options:
+          min: 1
+          max: 60
   - name: strona
     label: Strona główna i kontakt
     type: file
     path: content/strona.json
     format: json
     fields:
+      - name: pokazuj_w_google
+        label: Strona gotowa – pokazuj ją w Google
+        description: >-
+          Dopóki odznaczone, Google nie dodaje strony do wyników wyszukiwania (strona działa normalnie, link można wysyłać).
+          Zaznacz, gdy treści są gotowe, a strona ma docelowy adres (domenę).
+        type: boolean
       - name: tytul_strony
         label: Tytuł strony w Google
         description: >-
@@ -546,3 +570,147 @@ content:
           - name: instagram
             label: Instagram (link)
             type: string
+
+  - name: teksty
+    label: Teksty sekcji
+    type: file
+    path: content/teksty.json
+    format: json
+    fields:
+      - name: oferta_naglowek
+        label: Oferta – nagłówek
+        type: string
+      - name: wydarzenia_naglowek
+        label: Wydarzenia – nagłówek
+        type: string
+      - name: wydarzenia_podtytul
+        label: Wydarzenia – podtytuł
+        type: string
+      - name: rezerwacja_naglowek
+        label: Rezerwacja – nagłówek
+        type: string
+      - name: rezerwacja_podtytul
+        label: Rezerwacja – podtytuł
+        type: text
+      - name: rezerwacja_kroki
+        label: Rezerwacja – kroki (1, 2, 3)
+        type: string
+        list:
+          min: 3
+          max: 3
+      - name: rezerwacja_po_wyslaniu
+        label: Rezerwacja – komunikat na stronie po wysłaniu prośby
+        description: Pod spodem strona sama dopisze, na jaki adres poszło potwierdzenie.
+        type: text
+      - name: newsletter_naglowek
+        label: Newsletter – nagłówek
+        type: string
+      - name: newsletter_opis
+        label: Newsletter – opis
+        type: text
+      - name: newsletter_po_zapisie
+        label: Newsletter – komunikat po zapisie
+        type: text
+      - name: stopka_napis
+        label: Odręczny napis w stopce
+        type: string
+
+  - name: wyglad
+    label: Wygląd – czcionki
+    type: file
+    path: content/wyglad.json
+    format: json
+    fields:
+      - name: naglowki
+        label: Czcionka nagłówków
+        description: "Tytuły sekcji, nazwy pakietów, ceny. Podgląd wszystkich z listy: strona czcionki.html (adres strony + czcionki.html)."
+        type: select
+        default: "Cormorant Garamond"
+        options:
+          values:
+            - "Cormorant Garamond"
+            - "Playfair Display"
+            - "Lora"
+            - "EB Garamond"
+            - "Libre Baskerville"
+            - "Marcellus"
+            - "Cinzel"
+            - "DM Serif Display"
+            - "Fraunces"
+            - "Bodoni Moda"
+      - name: naglowki_inny
+        label: Czcionka nagłówków – inny font z Google Fonts (opcjonalnie)
+        description: >-
+          Dokładna nazwa z fonts.google.com, np. „Playfair Display”. Wpisana nazwa ma pierwszeństwo przed listą wyżej. Font musi mieć
+          polskie znaki – jeśli nie ma albo nazwa jest błędna, zostaje Cormorant Garamond (ostrzeżenie w zakładce Actions).
+        type: string
+      - name: tekst
+        label: Czcionka tekstu
+        description: "Zwykły tekst, przyciski, formularze. Podgląd: czcionki.html."
+        type: select
+        default: "Jost"
+        options:
+          values:
+            - "Jost"
+            - "Lato"
+            - "Montserrat"
+            - "Raleway"
+            - "Nunito Sans"
+            - "Work Sans"
+            - "Source Sans 3"
+            - "Karla"
+            - "Mulish"
+            - "Josefin Sans"
+      - name: tekst_inny
+        label: Czcionka tekstu – inny font z Google Fonts (opcjonalnie)
+        description: >-
+          Dokładna nazwa z fonts.google.com, np. „Lato”. Wpisana nazwa ma pierwszeństwo przed listą wyżej. Font musi mieć
+          polskie znaki – jeśli nie ma albo nazwa jest błędna, zostaje Jost (ostrzeżenie w zakładce Actions).
+        type: string
+      - name: odreczny
+        label: Czcionka odręczna
+        description: "Ozdobne napisy („zatrzymane chwile”, „dziękuję!”). Podgląd: czcionki.html."
+        type: select
+        default: "Caveat"
+        options:
+          values:
+            - "Caveat"
+            - "Dancing Script"
+            - "Great Vibes"
+            - "Parisienne"
+            - "Sacramento"
+            - "Allura"
+            - "Alex Brush"
+            - "Pinyon Script"
+            - "Italianno"
+            - "Amatic SC"
+      - name: odreczny_inny
+        label: Czcionka odręczna – inny font z Google Fonts (opcjonalnie)
+        description: >-
+          Dokładna nazwa z fonts.google.com, np. „Dancing Script”. Wpisana nazwa ma pierwszeństwo przed listą wyżej. Font musi mieć
+          polskie znaki – jeśli nie ma albo nazwa jest błędna, zostaje Caveat (ostrzeżenie w zakładce Actions).
+        type: string
+
+  - name: firma
+    label: Dane firmy (polityka prywatności)
+    type: file
+    path: content/firma.json
+    format: json
+    fields:
+      - name: imie_nazwisko
+        label: Imię i nazwisko
+        type: string
+      - name: nazwa_dzialalnosci
+        label: Nazwa działalności (jeśli jest)
+        type: string
+      - name: adres
+        label: Adres do korespondencji
+        description: Wymagany w polityce prywatności (może być adres działalności).
+        type: string
+      - name: nip
+        label: NIP (jeśli jest)
+        type: string
+      - name: email
+        label: E-mail w sprawach danych osobowych
+        description: Puste = e-mail z „Strona główna i kontakt”.
+        type: string

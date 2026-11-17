@@ -16,18 +16,22 @@ Statyczna strona (HTML + CSS + JS), bez żadnych płatnych usług.
 ```
 index.html                  – SZABLON strony (pola w {{…}} wypełniane treściami z content/)
 content/                    – ⭐ treści edytowane w panelu: strona.json, o-mnie.json, oferta.json,
-                              galeria.json (podpisy zdjęć), wydarzenia/*.json
+                              galeria.json (podpisy zdjęć), wydarzenia/*.json, teksty.json (nagłówki sekcji),
+                              wyglad.json (czcionki), firma.json (dane do polityki prywatności), rezerwacje.json
 media/portfolio/<Kategoria>/ – ⭐ zdjęcia galerii; każdy podfolder = przycisk kategorii
 media/strona/, media/wydarzenia/ – zdjęcia do „O mnie” i wydarzeń
 .pages.yml                  – konfiguracja panelu Pages CMS (pola, etykiety)
-build/build.mjs             – budowanie strony do _site/ (teksty, lista zdjęć, zmniejszanie zdjęć)
+build/build.mjs             – budowanie strony do _site/ (teksty, lista zdjęć, zmniejszanie zdjęć, sitemap)
+build/fonty.mjs             – czcionki z panelu: pobiera z Google Fonts przy publikacji i hostuje na stronie;
+                              build/fonty-domyslne/ – domyślne czcionki w repozytorium (build działa bez internetu)
+czcionki.html               – podgląd czcionek do wyboru (dla Eweliny, nie ma do niej linku)
 .github/workflows/strona.yml – automatyczne budowanie i publikacja po każdej zmianie
 js/config.js                – ustawienia techniczne: adres skryptu (rezerwacje + formularz)
 js/main.js, js/rezerwacje.js – logika (nie trzeba ruszać); js/wspolne.js – wspólne drobiazgi obu plików
 404.html                    – strona „nie ma takiej strony” (szablon, link na stronę główną z panelu)
 favicon.svg                 – ikona karty; build robi z niej ikonę na telefon (apple-touch-icon.png)
 css/style.css               – wygląd (kolory na górze pliku, sekcja :root)
-polityka-prywatnosci.html   – RODO (uzupełnij dane!)
+polityka-prywatnosci.html   – SZABLON polityki prywatności (dane administratora z panelu „Dane firmy”)
 ```
 
 ## Edycja treści i zdjęć – panel Pages CMS
@@ -36,7 +40,12 @@ Każdy zapis w panelu to commit w repozytorium (historia zostaje, każdą zmian�
 a po ok. 1–2 minutach strona aktualizuje się sama (postęp: zakładka **Actions** w repozytorium).
 
 - **Wydarzenia i warsztaty** – „Dodaj”, wypełnij formularz. Minione wydarzenia znikają ze strony same.
-- **Oferta i cennik**, **O mnie**, **Strona główna i kontakt** – zwykłe formularze.
+- **Oferta i cennik**, **O mnie**, **Strona główna i kontakt**, **Teksty sekcji** – zwykłe formularze.
+- **Strona główna i kontakt → „Strona gotowa – pokazuj ją w Google”** – dopóki odznaczone, strona ma `noindex`
+  (Google jej nie pokazuje). Zaznaczyć po uzupełnieniu treści i przeniesieniu na docelową domenę.
+- **Wygląd – czcionki** – czcionka nagłówków, tekstu i napisów odręcznych (lista albo dowolna nazwa z fonts.google.com).
+  Podgląd: adres strony + `czcionki.html`. Font bez polskich znaków albo z literówką → ostrzeżenie w Actions, zostaje domyślny.
+- **Dane firmy (polityka prywatności)** – imię i nazwisko, adres, NIP, e-mail; puste pola są w polityce zaznaczone.
 - **Media → Portfolio** – każdy folder to kategoria w galerii:
   - nowy folder = nowy przycisk kategorii (pusty folder się nie wyświetla),
   - liczba na początku nazwy ustala kolejność i nie jest wyświetlana (`1 Rodzinne i dziecięce`),

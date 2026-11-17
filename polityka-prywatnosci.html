@@ -1,32 +1,102 @@
 <!doctype html>
+<!-- SZABLON polityki prywatności – wypełnia go build/build.mjs. Dane administratora: panel → „Dane firmy (polityka prywatności)”,
+     okres usuwania danych: panel → „Rezerwacje – godziny i zasady”. Przy zmianie dostawców (np. hosting Cloudflare) zaktualizuj pkt 4–5. -->
 <html lang="pl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Polityka prywatności · Ewelina Kucharczyk Fotografia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+  {{^strona.pokazuj_w_google}}<meta name="robots" content="noindex">
+  {{/strona.pokazuj_w_google}}<title>Polityka prywatności · Ewelina Kucharczyk Fotografia</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
-  <style>.policy{max-width:760px;margin:0 auto;padding:4rem 1.25rem}.policy h2{font-size:1.6rem;margin-top:2rem}</style>
+  <link rel="stylesheet" href="css/fonty.css">
+  <style>
+    .policy { max-width: 760px; margin: 0 auto; padding: 4rem 1.25rem; }
+    .policy h2 { font-size: 1.6rem; margin-top: 2.2rem; }
+    .policy ul { padding-left: 1.2rem; }
+    .policy li { margin-bottom: .5rem; }
+    .policy .brak { background: #f6dcc9; padding: 0 .3em; }
+    .policy__data { color: var(--muted); font-size: .9rem; }
+  </style>
 </head>
 <body>
 <main class="policy">
-  <p><a href="index.html">← wróć na stronę</a></p>
+  <p><a href="{{strona.adres_glowny}}">← wróć na stronę</a></p>
   <h1>Polityka prywatności</h1>
-  <!-- TODO: uzupełnij dane w [nawiasach] -->
-  <h2>1. Administrator danych</h2>
-  <p>Administratorem danych osobowych jest [Ewelina Kucharczyk, adres / nazwa działalności, NIP – jeśli dotyczy], e-mail: [adres e-mail].</p>
-  <h2>2. Jakie dane i po co</h2>
-  <p>Przetwarzam dane podane w formularzu kontaktowym lub przy rezerwacji terminu (imię, e-mail, telefon, treść wiadomości) wyłącznie w celu odpowiedzi na zapytanie, ustalenia szczegółów i realizacji sesji (art. 6 ust. 1 lit. a, b i f RODO).</p>
-  <h2>3. Komu przekazuję dane</h2>
-  <p>Dane mogą być przetwarzane przez dostawców usług technicznych: Google (rezerwacje terminów i formularz kontaktowy – Kalendarz Google, Gmail, Google Apps Script), MailerLite (wysyłka newslettera), Google reCAPTCHA (ochrona formularza newslettera przed botami) oraz dostawcę hostingu strony. Nie sprzedaję i nie udostępniam danych innym podmiotom.</p>
-  <h2>Newsletter</h2>
-  <p>Jeśli zapiszesz się na newsletter, przetwarzam Twoje imię i adres e-mail na podstawie Twojej zgody (art. 6 ust. 1 lit. a RODO), wyłącznie w celu wysyłki newslettera. Zapis potwierdzasz, klikając link w wiadomości e-mail. Zgodę możesz wycofać w każdej chwili, klikając link „wypisz się” w stopce każdej wiadomości lub pisząc na adres podany wyżej. Dane przechowuję do czasu wypisania się z newslettera. Newsletter wysyłany jest przez MailerLite (MailerLite Limited, Irlandia).</p>
-  <h2>4. Jak długo</h2>
-  <p>Dane przechowuję przez czas potrzebny do obsługi zapytania i realizacji usługi, a następnie przez okres wymagany przepisami (np. podatkowymi).</p>
-  <h2>5. Twoje prawa</h2>
-  <p>Masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przeniesienia, wniesienia sprzeciwu, cofnięcia zgody oraz złożenia skargi do Prezesa UODO.</p>
-  <h2>6. Pliki cookies</h2>
-  <p>Strona nie używa własnych plików cookies do śledzenia. Google reCAPTCHA w formularzu newslettera może używać plików cookies zgodnie z polityką Google.</p>
+  <p>Tutaj przeczytasz, jakie dane zbieram przez tę stronę, po co, jak długo je przechowuję i jakie masz prawa. Piszę prosto, bez prawniczego żargonu.</p>
+
+  <h2>1. Kto jest administratorem danych</h2>
+  <p>Administratorem Twoich danych osobowych jestem {{{firma.administrator_html}}}.</p>
+  <p>W każdej sprawie dotyczącej danych napisz do mnie: <a href="mailto:{{firma.email}}">{{firma.email}}</a>.</p>
+
+  <h2>2. Jakie dane, po co i na jakiej podstawie</h2>
+  <ul>
+    <li><b>Formularz kontaktowy</b> – imię, e-mail, rodzaj sesji i treść wiadomości. Używam ich, żeby odpowiedzieć na Twoje pytanie,
+      a jeśli dotyczy sesji – żeby ją z Tobą ustalić. Podstawa: podjęcie działań na Twoje żądanie przed zawarciem umowy
+      (art. 6 ust. 1 lit. b RODO), a przy innych sprawach – mój prawnie uzasadniony interes, czyli odpowiadanie na korespondencję (art. 6 ust. 1 lit. f RODO).</li>
+    <li><b>Rezerwacja sesji</b> – imię, e-mail, telefon (jeśli podasz), wybrany pakiet, termin i Twoje uwagi. Używam ich, żeby
+      zarezerwować i przeprowadzić sesję, wysłać potwierdzenie, przypomnienie i ewentualne zmiany terminu. Podstawa: umowa i działania przed jej zawarciem (art. 6 ust. 1 lit. b RODO).</li>
+    <li><b>Newsletter</b> – imię i e-mail. Wysyłam go tylko wtedy, gdy się zapiszesz i potwierdzisz zapis linkiem z maila.
+      Podstawa: Twoja zgoda (art. 6 ust. 1 lit. a RODO). Możesz ją wycofać w każdej chwili linkiem „wypisz się” w każdej wiadomości
+      albo pisząc do mnie – nie wpływa to na zgodność z prawem wcześniejszej wysyłki.</li>
+    <li><b>Rozliczenia</b> – jeśli wystawiam rachunek lub fakturę, dane potrzebne do niego przechowuję, bo wymagają tego przepisy podatkowe (art. 6 ust. 1 lit. c RODO).</li>
+    <li><b>Ochrona przed nadużyciami i ewentualne spory</b> – formularze mają limity wiadomości z jednego adresu e-mail, a w razie sporu
+      mogę użyć danych do obrony swoich praw. Podstawa: prawnie uzasadniony interes (art. 6 ust. 1 lit. f RODO).</li>
+  </ul>
+  <p>Podanie danych jest dobrowolne, ale bez imienia i adresu e-mail nie mogę odpowiedzieć na wiadomość ani przyjąć rezerwacji. Telefon jest opcjonalny.</p>
+  <p>Nie podejmuję wobec Ciebie żadnych decyzji w sposób zautomatyzowany i nie profiluję Cię.</p>
+
+  <h2>3. Jak długo przechowuję dane</h2>
+  <ul>
+    <li><b>Rezerwacje</b> – prośby nierozpatrzone, odrzucone i odwołane usuwam z kalendarza od razu. Przy potwierdzonej sesji
+      dane z kalendarza usuwane są automatycznie <b>{{rezerwacje.usuwanie_txt}} po sesji</b>.</li>
+    <li><b>Korespondencja</b> (formularz kontaktowy, maile) – przez czas rozmowy, a potem nie dłużej niż {{rezerwacje.usuwanie_txt}}
+      od ostatniej wiadomości.</li>
+    <li><b>Dokumenty rozliczeniowe</b> – 5 lat od końca roku, w którym powstały (przepisy podatkowe).</li>
+    <li><b>Newsletter</b> – do wypisania się albo wycofania zgody.</li>
+    <li>Jeśli dojdzie do sporu – do jego zakończenia.</li>
+  </ul>
+
+  <h2>4. Komu przekazuję dane</h2>
+  <p>Nie sprzedaję danych i nie przekazuję ich innym firmom w celach marketingowych. Korzystam z usług dostawców, którzy przetwarzają dane w moim imieniu:</p>
+  <ul>
+    <li><b>Google Ireland Limited</b> – poczta (Gmail), Kalendarz Google i Google Apps Script, przez które działają formularz kontaktowy i rezerwacje,
+      a także zabezpieczenie reCAPTCHA w formularzu newslettera;</li>
+    <li><b>MailerLite Limited</b> (Irlandia) – wysyłka newslettera;</li>
+    <li><b>GitHub, Inc.</b> – serwery, na których działa ta strona. Jak każdy serwer, zapisują w dziennikach techniczne dane odwiedzin (np. adres IP, rodzaj przeglądarki).</li>
+  </ul>
+  <p>Dane mogą otrzymać też organy publiczne, gdy wymaga tego prawo.</p>
+
+  <h2>5. Przekazywanie danych poza Europę</h2>
+  <p>Google i GitHub mogą przetwarzać dane także w USA. Odbywa się to na podstawie decyzji Komisji Europejskiej o odpowiednim stopniu ochrony
+    (EU-US Data Privacy Framework – obie firmy są w nim certyfikowane) lub standardowych klauzul umownych zatwierdzonych przez Komisję.</p>
+
+  <h2>6. Twoje prawa</h2>
+  <p>Masz prawo:</p>
+  <ul>
+    <li>dostępu do swoich danych i otrzymania ich kopii,</li>
+    <li>sprostowania (poprawienia) danych,</li>
+    <li>usunięcia danych,</li>
+    <li>ograniczenia przetwarzania,</li>
+    <li>przeniesienia danych,</li>
+    <li>sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie,</li>
+    <li>wycofania zgody na newsletter w dowolnym momencie.</li>
+  </ul>
+  <p>Wystarczy napisać na <a href="mailto:{{firma.email}}">{{firma.email}}</a> – odpowiem najpóźniej w ciągu miesiąca.
+    Masz też prawo złożyć skargę do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa, <a href="https://uodo.gov.pl" rel="noopener">uodo.gov.pl</a>).</p>
+
+  <h2>7. Pliki cookies i usługi zewnętrzne na stronie</h2>
+  <ul>
+    <li>Strona <b>nie zapisuje plików cookies</b> i nie używa narzędzi analitycznych ani reklamowych (np. Google Analytics, piksela Facebooka).</li>
+    <li>Czcionki są wczytywane z tej samej strony, nie z serwerów Google.</li>
+    <li>Kalendarz rezerwacji pobiera wolne terminy, a formularze wysyłają wiadomości przez serwer Google (Google Apps Script) –
+      Twoja przeglądarka łączy się wtedy z Google (widoczny jest adres IP), bez plików cookies.</li>
+    <li>Zabezpieczenie reCAPTCHA (Google) i skrypt MailerLite wczytują się dopiero, gdy zaczniesz wypełniać formularz newslettera.
+      Google może wtedy zapisać pliki cookies potrzebne do odróżnienia ludzi od botów.</li>
+    <li>Ikony Facebooka i Instagrama to zwykłe linki – nic się z tych serwisów nie wczytuje, dopóki w nie nie klikniesz.</li>
+  </ul>
+
+  <p class="policy__data">Polityka obowiązuje od {{obowiazuje_od}}.</p>
 </main>
 </body>
 </html>

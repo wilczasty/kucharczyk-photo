@@ -312,6 +312,7 @@ h3 { font-size: 1.6rem; }
 .form textarea { resize: vertical; }
 .form .form__check { display: flex; gap: .7rem; align-items: flex-start; text-transform: none; letter-spacing: 0; font-size: .85rem; }
 .form__check input { margin-top: .3rem; accent-color: var(--wood); }
+.form__info { margin: 0; font-size: .82rem; line-height: 1.55; color: var(--muted); }
 .form .btn { justify-self: start; }
 .form__status { margin: 0; font-size: .95rem; min-height: 1.5em; }
 .form__status.ok { color: var(--olive); }
@@ -504,3 +505,4 @@ h3 { font-size: 1.6rem; }
   .rez__pak b { font-size: 1.1rem; }
   .rez__pak span { font-size: .7rem; letter-spacing: 0; }
 }
+.ml-form-recaptcha .g-recaptcha { min-height: 78px; }   /* miejsce na reCAPTCHA, która wczytuje się dopiero przy użyciu formularza */

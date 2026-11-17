@@ -1,0 +1,17 @@
+{
+  "oferta_naglowek": "Sesje i cennik",
+  "wydarzenia_naglowek": "Spotkajmy się",
+  "wydarzenia_podtytul": "Warsztaty, plenery i mini-sesje – liczba miejsc ograniczona.",
+  "rezerwacja_naglowek": "Wybierz termin",
+  "rezerwacja_podtytul": "Wybierz pakiet i wolny termin – wyślesz prośbę o rezerwację, a ja potwierdzę ją mailowo, zwykle w ciągu 24 godzin.",
+  "rezerwacja_kroki": [
+    "Wybierz pakiet, dzień i godzinę",
+    "Podaj dane i wyślij prośbę",
+    "Potwierdzam termin mailowo"
+  ],
+  "rezerwacja_po_wyslaniu": "Prośba o rezerwację została wysłana, a termin jest wstępnie zablokowany dla Ciebie. Potwierdzę go osobnym mailem – zwykle w ciągu 24 godzin.",
+  "newsletter_naglowek": "Bądźmy w kontakcie",
+  "newsletter_opis": "Raz na jakiś czas napiszę o wolnych terminach, warsztatach i nowych sesjach. Bez spamu, obiecuję.",
+  "newsletter_po_zapisie": "Sprawdź skrzynkę i kliknij link w wiadomości ode mnie, żeby potwierdzić zapis. Jeśli jej nie widzisz, zajrzyj do spamu lub zakładki „Oferty”.",
+  "stopka_napis": "dziękuję, że jesteś"
+}
