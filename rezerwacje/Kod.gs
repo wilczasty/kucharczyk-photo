@@ -5,8 +5,8 @@
    - podaje stronie wolne terminy (bez szczegółów wydarzeń),
    - przyjmuje prośbę o rezerwację: wstępnie blokuje termin
      w Kalendarzu Google i wysyła maile,
-   - właściciel potwierdza / odrzuca prośbę przyciskiem z maila,
-     a potwierdzoną sesję może później odwołać (z mailem do klienta),
+   - właściciel potwierdza / odrzuca prośbę przyciskiem z maila
+     (strona decyzja.html na stronie www), a potwierdzoną sesję może później odwołać (z mailem do klienta),
    - klient może sam odwołać rezerwację linkiem z maila
      (strona odwolanie.html na stronie www),
    - co godzinę: wygasza nierozpatrzone prośby, przypomina właścicielowi
@@ -14,7 +14,8 @@
    - obsługuje formularz kontaktowy ze strony (mail do właściciela
      + automatyczna odpowiedź do klienta).
    Instrukcja wdrożenia: rezerwacje/INSTRUKCJA.md
-   Funkcje bez „_” na końcu są dostępne z zewnątrz (strona decyzji, wyzwalacz) – każda sprawdza uprawnienia.
+   Funkcje bez „_” na końcu są dostępne z zewnątrz – poza doGet/doPost to tylko wyzwalacz
+   i konfiguracja, obie sprawdzają uprawnienia.
    ========================================================= */
 
 // Godziny, dni, przerwy, limity, pakiety i teksty edytuje się w panelu Pages CMS
@@ -115,18 +116,18 @@ function doGet(e) {
     wczytajUstawienia_();
     if (p.akcja === "terminy") return json_(wolneTerminy_(p.od, p.do, p.pakiet));
     if (p.akcja === "info") return json_(infoRezerwacji_(p.id, p.t));
-    if (p.akcja === "decyzja") return stronaDecyzji_(p.id, p.t);
-    if (p.akcja === "odwolaj") return stronaOdwolaniaStara_(p.id, p.t);
+    if (p.akcja === "infoDecyzji") return json_(infoDecyzji_(p.id, p.t));
+    // stare linki z maili (strony decyzji i odwołania były kiedyś w skrypcie) → przekierowanie na stronę www
+    if (p.akcja === "decyzja") return przeniesione_("decyzja.html", p.id, p.t, "Decyzja o rezerwacji", "Przejdź do rezerwacji");
+    if (p.akcja === "odwolaj") return przeniesione_("odwolanie.html", p.id, p.t, "Odwołanie rezerwacji", "Przejdź do odwołania");
     return json_({ ok: true, info: "Rezerwacje działają." });
   } catch (err) {
     console.error(err);
-    if (p.akcja === "decyzja" || p.akcja === "odwolaj")
-      return strona_("Błąd", "<h1>Coś poszło nie tak</h1><p>Spróbuj ponownie za kilka minut.</p>");
     return json_({ ok: false, blad: "serwer" });
   }
 }
 
-/* ---------------- wejście: POST (rezerwacja, odwołanie albo formularz kontaktowy) ---------------- */
+/* ---------------- wejście: POST (rezerwacja, decyzja, odwołanie albo formularz kontaktowy) ---------------- */
 function doPost(e) {
   try {
     wczytajUstawienia_();
@@ -135,6 +136,7 @@ function doPost(e) {
     if (d.strona) return json_({ ok: true });           // pułapka na boty (ukryte pole)
     if (d.akcja === "kontakt") return json_(kontakt_(d));
     if (d.akcja === "odwolaj") return json_(odwolaj_(d.id, d.t, d.powod));
+    if (d.akcja === "decyzja") return json_(decyzja_(d.id, d.t, d.decyzja, d.wiadomosc));
     return json_(zarezerwuj_(d));
   } catch (err) {
     console.error(err);
@@ -367,46 +369,38 @@ function zarezerwuj_(d) {
   }
 }
 
-/* ---------------- potwierdzenie / odrzucenie / odwołanie przez właściciela ---------------- */
+/* ---------------- potwierdzenie / odrzucenie / odwołanie przez właściciela (strona decyzja.html na stronie www) ---------------- */
 // Link z maila otwiera stronę z przyciskami (sam link niczego nie zmienia –
 // dzięki temu skanery linków w poczcie nie potwierdzą rezerwacji przypadkiem).
-function stronaDecyzji_(id, token) {
+// Strona jest na stronie www, a nie w skrypcie: link ze skryptu nie otwiera się w przeglądarce
+// zalogowanej na kilka kont Google („Nie udało się otworzyć pliku”) i pokazuje pasek „Zgłoś nadużycie”.
+
+// GET ?akcja=infoDecyzji&id=…&t=… – dane prośby dla właściciela (token z maila właściciela).
+function infoDecyzji_(id, token) {
   const ev = wydarzenie_(id, token);
-  const skrypt = (funkcja, gotowe) =>
-    "<script>function dec(a){if(a!=='tak'&&!confirm(a==='nie'?'Na pewno odrzucić?':'Na pewno odwołać sesję? Klient dostanie maila.'))return;" +
-    "document.querySelectorAll('button').forEach(b=>b.disabled=true);document.getElementById('st').textContent='Zapisywanie…';" +
-    "google.script.run.withSuccessHandler(t=>document.body.innerHTML='<h1>'+t+'</h1><p>" + gotowe + "</p>')" +
-    ".withFailureHandler(e=>{document.getElementById('st').textContent='Błąd: '+e.message;document.querySelectorAll('button').forEach(b=>b.disabled=false)})" +
-    "." + funkcja + "(" + JSON.stringify(id) + "," + JSON.stringify(token) + ",a,document.getElementById('msg').value)}</script>";
-  let tresc;
-  if (!ev) {
-    tresc = "<h1>Nie znaleziono rezerwacji</h1><p>Mogła zostać już odrzucona, odwołana albo usunięta z kalendarza.</p>";
-  } else {
-    const naglowek =
-      "<p><b>" + esc_(ev.getTag("imie")) + "</b> &lt;" + esc_(ev.getTag("email")) + "&gt;</p>" +
-      "<p class='duze'>" + esc_(pakiet_(ev).nazwa) + " · " + esc_(opisTerminu_(ev.getStartTime(), ev.getEndTime())) + "</p>";
-    if (ev.getTag("rezerwacja") === "prosba") {
-      tresc = "<h1>Prośba o rezerwację</h1>" + naglowek +
-        "<label>Wiadomość do klienta (opcjonalnie)<textarea id='msg' rows='4'></textarea></label>" +
-        "<div class='btns'><button onclick=\"dec('tak')\">Potwierdź</button>" +
-        "<button class='no' onclick=\"dec('nie')\">Odrzuć i zwolnij termin</button></div><p id='st'></p>" +
-        skrypt("decyzja", "Klient dostał maila. Ten sam link z maila pozwoli później odwołać sesję. Możesz zamknąć tę kartę.");
-    } else if (ev.getEndTime().getTime() < Date.now()) {
-      tresc = "<h1>Sesja już się odbyła</h1>" + naglowek;
-    } else {
-      tresc = "<h1>Potwierdzona sesja</h1>" + naglowek +
-        "<p>Musisz odwołać tę sesję (choroba, pogoda, inny powód)? Klient dostanie maila z Twoją wiadomością, a termin zwolni się na stronie.</p>" +
-        "<label>Wiadomość do klienta (np. propozycja innego terminu)<textarea id='msg' rows='4'></textarea></label>" +
-        "<div class='btns'><button class='no' onclick=\"dec('odwolaj')\">Odwołaj sesję</button></div><p id='st'></p>" +
-        skrypt("decyzja", "Klient dostał maila. Możesz zamknąć tę kartę.");
-    }
-  }
-  return strona_("Rezerwacja – decyzja", tresc);
+  if (!ev) return { ok: true, stan: "brak" };
+  const stan = ev.getTag("rezerwacja") === "prosba" ? "prosba" : ev.getEndTime().getTime() < Date.now() ? "odbyla" : "potwierdzona";
+  return {
+    ok: true, stan: stan,
+    imie: ev.getTag("imie"), email: ev.getTag("email"),
+    pakiet: pakiet_(ev).nazwa, kiedy: opisTerminu_(ev.getStartTime(), ev.getEndTime()),
+  };
 }
 
-// Wywoływane z przycisków na stronie decyzji. Wymaga ważnego tokenu z maila właściciela.
-function decyzja(id, token, akcja, wiadomosc) {
-  wczytajUstawienia_();
+// POST {akcja:"decyzja", id, t, decyzja:"tak"|"nie"|"odwolaj", wiadomosc} → {ok, komunikat}
+function decyzja_(id, token, akcja, wiadomosc) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) return { ok: false, komunikat: "Serwer jest chwilowo zajęty – spróbuj ponownie za chwilę." };
+  try {
+    return { ok: true, komunikat: wykonajDecyzje_(id, token, akcja, wiadomosc) };
+  } catch (err) {
+    return { ok: false, komunikat: err.message };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function wykonajDecyzje_(id, token, akcja, wiadomosc) {
   if (["tak", "nie", "odwolaj"].indexOf(akcja) < 0) throw new Error("Nieznana akcja.");
   const ev = wydarzenie_(id, token);
   if (!ev) throw new Error("Nie znaleziono rezerwacji.");
@@ -518,12 +512,16 @@ function odwolaj_(id, token, powod) {
   }
 }
 
-// Stare linki (?akcja=odwolaj z maili sprzed zmiany) – przekierowanie na stronę odwołania na stronie www.
-function stronaOdwolaniaStara_(id, token) {
-  const link = linkOdwolania_(id, token);
-  return strona_("Odwołanie rezerwacji",
-    "<h1>Odwołanie rezerwacji</h1><p>Strona odwołania przeniosła się na moją stronę internetową.</p>" +
-    "<div class='btns'><a class='btn' href='" + esc_(link) + "' target='_top'>Przejdź do odwołania</a></div>");
+// Stare linki ze skryptu (?akcja=decyzja / ?akcja=odwolaj z maili sprzed zmiany) – przekierowanie na stronę www.
+function przeniesione_(plik, id, token, tytul, napis) {
+  const link = USTAWIENIA.stronaWww + plik + "?id=" + encodeURIComponent(id || "") + "&t=" + encodeURIComponent(token || "");
+  return HtmlService.createHtmlOutput(
+    "<style>body{font:16px/1.6 system-ui,sans-serif;color:#3f3228;background:#faf6ef;max-width:560px;margin:40px auto;padding:0 16px}" +
+    "h1{font-family:Georgia,serif;font-weight:500}a.btn{display:inline-block;padding:12px 22px;border-radius:4px;background:#7d5536;color:#fff;text-decoration:none}</style>" +
+    "<h1>" + tytul + "</h1><p>Ta strona przeniosła się na stronę internetową.</p>" +
+    "<p><a class='btn' href='" + esc_(link) + "' target='_top'>" + napis + "</a></p>")
+    .setTitle(tytul)
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
 }
 
 function wydarzenieKlienta_(id, token) {
@@ -669,18 +667,8 @@ function konfiguruj() {
 }
 
 /* ---------------- pomocnicze ---------------- */
-function strona_(tytul, tresc) {
-  return HtmlService.createHtmlOutput(
-    "<style>body{font:16px/1.6 system-ui,sans-serif;color:#3f3228;background:#faf6ef;max-width:560px;margin:40px auto;padding:0 16px}" +
-    "h1{font-family:Georgia,serif;font-weight:500}.duze{font-size:20px}label{display:grid;gap:6px;margin:20px 0;color:#7a6a5b}" +
-    "textarea{font:inherit;padding:8px;border:1px solid #d9c4a6;border-radius:4px}.btns{display:flex;gap:12px;flex-wrap:wrap}" +
-    "button,.btn{font:inherit;padding:12px 22px;border:0;border-radius:4px;background:#5f6b4e;color:#fff;cursor:pointer;text-decoration:none}" +
-    "button.no{background:#a2412c}button:disabled{opacity:.5}a{color:#7d5536}a.btn{color:#fff}</style>" + tresc)
-    .setTitle(tytul)
-    .addMetaTag("viewport", "width=device-width, initial-scale=1");
-}
 function przyciskDecyzji_(id, token, napis) {
-  const link = ScriptApp.getService().getUrl() + "?akcja=decyzja&id=" + encodeURIComponent(id) + "&t=" + encodeURIComponent(token);
+  const link = USTAWIENIA.stronaWww + "decyzja.html?id=" + encodeURIComponent(id) + "&t=" + encodeURIComponent(token);
   return "<p><a href='" + esc_(link) + "' style='display:inline-block;background:#7d5536;color:#fff;padding:12px 22px;text-decoration:none;border-radius:4px'>" + napis + "</a></p>";
 }
 function wydarzenie_(id, token) {

@@ -42,7 +42,8 @@ Wartości w `USTAWIENIA` na górze `Kod.gs` to tylko zapas, gdyby strona była n
 ## Jak to działa na co dzień
 - Klient wybiera termin → w kalendarzu pojawia się **żółte** wydarzenie „❓ PROŚBA: …”,
   termin jest zablokowany. Klient dostaje maila „otrzymałam prośbę”.
-- Ewelina dostaje maila z przyciskiem **„Potwierdź lub odrzuć”**:
+- Ewelina dostaje maila z przyciskiem **„Potwierdź lub odrzuć”** (otwiera stronę `decyzja.html` na stronie www –
+  działa też w przeglądarce zalogowanej na kilka kont Google):
   - Potwierdź → wydarzenie robi się **zielone**, klient dostaje potwierdzenie.
   - Odrzuć → wydarzenie znika, termin się zwalnia, klient dostaje grzeczną odmowę.
   - W obu przypadkach można dopisać wiadomość do klienta.
@@ -69,5 +70,6 @@ Zrobić najlepiej zanim pojawią się prawdziwe rezerwacje – linki w wysłanyc
    Dodaj właściwość** `stronaWww` = pełny adres strony z ukośnikiem na końcu (np. `https://twojadomena.pl/`).
    Kod zostaje bez zmian. Potem jeszcze raz **konfiguruj**.
 4. Nowy adres `/exec` wkleić w `js/config.js` → `rezerwacjeUrl` i opublikować stronę.
-5. Stary projekt skryptu (konto Adriana): poczekać, aż miną sesje zarezerwowane przez stary skrypt
-   (ich linki odwołania i decyzji działają tylko tam), potem usunąć wyzwalacz i wdrożenie.
+5. Stary projekt skryptu (konto Adriana): sesje zarezerwowane wcześniej są w kalendarzu Adriana, a strona www po zmianie
+   `rezerwacjeUrl` pyta już nowy skrypt – ich linki odwołania i decyzji przestaną działać. Przeprowadzkę robić, gdy nie ma
+   aktywnych rezerwacji (albo obsłużyć je ręcznie), potem usunąć stary wyzwalacz i wdrożenie.

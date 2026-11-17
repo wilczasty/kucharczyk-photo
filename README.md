@@ -65,7 +65,8 @@ jednym przyciskiem w mailu. Zaplecze to darmowy skrypt Google Apps Script na Two
 - Podgląd wyglądu bez skryptu: dopisz do adresu strony `?rezerwacje=demo`.
 - Klient może sam odwołać rezerwację linkiem z maila – prowadzi on na stronę `odwolanie.html` w stylu strony
   (podgląd: `odwolanie.html?demo=ok`, `?demo=zaPozno`, `?demo=brak`). Wydarzenie znika z kalendarza, a Ty dostajesz maila.
-- Potwierdzoną sesję odwołujesz tym samym linkiem z maila co przy decyzji (przycisk „Odwołaj sesję”, klient dostaje maila).
+- Przycisk „Potwierdź lub odrzuć” w mailu otwiera stronę `decyzja.html` (podgląd: `decyzja.html?demo=prosba`,
+  `?demo=potwierdzona`). Potwierdzoną sesję odwołujesz tym samym linkiem (przycisk „Odwołaj sesję”, klient dostaje maila).
 - Co godzinę skrypt: wygasza nierozpatrzone prośby (domyślnie po 3 dniach, mail do klienta), raz dziennie przypomina
   o prośbach czekających ponad dobę i wysyła klientom przypomnienie przed sesją (domyślnie 2 dni wcześniej).
 - **Godziny, dni, przerwy, limity, wstrzymanie rezerwacji, święta, wygasanie, przypomnienia i tekst autoodpowiedzi** – w panelu:

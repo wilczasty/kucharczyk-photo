@@ -327,7 +327,7 @@ const firma = {
 const jsonld = JSON.stringify(firma).replace(/</g, "\\u003c");
 
 /* =========================================================
-   7. index.html, 404.html i odwolanie.html z szablonów
+   7. index.html, 404.html, odwolanie.html i decyzja.html z szablonów
    ========================================================= */
 const view = {
   strona: {
@@ -348,7 +348,7 @@ const view = {
   podglad_v: podgladV,
   jsonld,
 };
-for (const page of ["index.html", "404.html", "odwolanie.html"])
+for (const page of ["index.html", "404.html", "odwolanie.html", "decyzja.html"])
   fs.writeFileSync(path.join(OUT, page), template(fs.readFileSync(path.join(ROOT, page), "utf8"), view));
 
 /* =========================================================
@@ -356,7 +356,7 @@ for (const page of ["index.html", "404.html", "odwolanie.html"])
       GitHub Pages każe przeglądarce trzymać pliki 10 min – po zmianie pliku zmienia się adres,
       więc przeglądarka nie połączy nowego HTML ze starym JS/CSS.
    ========================================================= */
-for (const page of ["index.html", "polityka-prywatnosci.html", "odwolanie.html"]) {
+for (const page of ["index.html", "polityka-prywatnosci.html", "odwolanie.html", "decyzja.html"]) {
   const f = path.join(OUT, page);
   fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace(/((?:href|src)=")((?:css|js)\/[^"?#]+)"/g, (m, pre, ref) => {
     const abs = path.join(OUT, ref);
