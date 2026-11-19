@@ -714,3 +714,93 @@ content:
         label: E-mail w sprawach danych osobowych
         description: Puste = e-mail z „Strona główna i kontakt”.
         type: string
+
+  - name: bony
+    label: Bon podarunkowy
+    type: file
+    path: content/bony.json
+    format: json
+    fields:
+      - name: pokazuj
+        label: Pokazuj sekcję z bonem na stronie
+        description: Razem z sekcją pojawia się link „Bon podarunkowy” w menu i przycisk „Podaruj sesję” na zdjęciu powitalnym.
+        type: boolean
+        default: true
+      - name: naglowek
+        label: Nagłówek
+        type: string
+      - name: podtytul
+        label: Podtytuł
+        type: text
+      - name: wstazka_swieta
+        label: Odręczny dopisek w okresie świątecznym
+        description: Widać go tylko wtedy, gdy na stronie pada śnieg (panel „Święta – śnieg i Mikołaj”). Puste = brak dopisku.
+        type: string
+      - name: komunikat
+        label: Komunikat pod bonem
+        description: "Na razie bonów nie da się zamówić przez stronę – tu napisz, jak je dostać albo kiedy ruszą. **tekst** = pogrubienie."
+        type: text
+      - name: kwotowy
+        label: Pokazuj „Bon kwotowy” obok pakietów
+        type: boolean
+        default: true
+      - name: kwotowy_od
+        label: Bon kwotowy – najmniejsza kwota (zł)
+        type: number
+        options:
+          min: 0
+      - name: waznosc_miesiecy
+        label: Ważność bonu (miesiące)
+        description: Na przykładowym bonie pojawi się data „ważny do”. 0 = bez daty.
+        type: number
+        options:
+          min: 0
+          max: 60
+      - name: przyklad_dla
+        label: Przykładowe imię na bonie
+        description: Odwiedzający może wpisać własne – bon na stronie zmienia się na żywo.
+        type: string
+      - name: przyklad_dedykacja
+        label: Przykładowa dedykacja na bonie
+        type: string
+
+  - name: swieta
+    label: Święta – śnieg i Mikołaj
+    type: file
+    path: content/swieta.json
+    format: json
+    fields:
+      - name: tryb
+        label: Kiedy włączyć
+        type: select
+        default: auto
+        options:
+          values:
+            - name: auto
+              label: Automatycznie w wybranym okresie
+            - name: zawsze
+              label: Zawsze (do sprawdzenia, jak wygląda)
+            - name: wylaczone
+              label: Wyłączone
+      - name: od
+        label: Od (dzień.miesiąc)
+        description: Np. 1.12 – strona sama sprawdza datę, nie trzeba nic zapisywać w grudniu.
+        type: string
+        pattern:
+          regex: "^([1-9]|[12]\\d|3[01])\\.(0?[1-9]|1[0-2])$"
+          message: "Wpisz dzień i miesiąc z kropką, np. 1.12"
+      - name: do
+        label: Do (dzień.miesiąc, włącznie)
+        description: Np. 6.01 – okres może przechodzić przez Nowy Rok.
+        type: string
+        pattern:
+          regex: "^([1-9]|[12]\\d|3[01])\\.(0?[1-9]|1[0-2])$"
+          message: "Wpisz dzień i miesiąc z kropką, np. 6.01"
+      - name: snieg
+        label: Padający śnieg na zdjęciu powitalnym
+        type: boolean
+        default: true
+      - name: mikolaj
+        label: Przelot Mikołaja na saniach (raz na wizytę)
+        type: boolean
+        default: true

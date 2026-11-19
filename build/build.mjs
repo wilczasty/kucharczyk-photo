@@ -168,6 +168,9 @@ const galeria = readJson("content/galeria.json");
 const teksty = readJson("content/teksty.json");
 const wyglad = readJson("content/wyglad.json");
 const daneFirmy = readJson("content/firma.json");
+const readJsonOpt = rel => { try { return readJson(rel); } catch { return {}; } };   // nowe pliki panelu – brak nie psuje budowania
+const bony = readJsonOpt("content/bony.json");
+const swieta = readJsonOpt("content/swieta.json");
 const wydarzenia = walk(path.join(ROOT, "content/wydarzenia")).filter(f => f.endsWith(".json"))
   .map(f => { try { return { ...JSON.parse(fs.readFileSync(f, "utf8")), plik: rel(f) }; } catch (e) { warn(`pomijam ${rel(f)}: ${e.message}`); return null; } })
   .filter(e => e && e.data && e.tytul);
@@ -305,6 +308,21 @@ const fonty = await przygotujFonty(wyglad, OUT, warn);
 fs.writeFileSync(path.join(OUT, "css/fonty.css"), fonty.css);
 dane.FONTY = { polecane: POLECANE, wybrane: fonty.wybrane };
 
+/* ---------- tryb świąteczny (panel „Święta – śnieg i Mikołaj”): daty „1.12” → „12-01”, sprawdza je przeglądarka ---------- */
+{
+  const mmdd = (t, dom) => {
+    const m = String(t || "").trim().match(/^(\d{1,2})\.(\d{1,2})$/);
+    if (m && +m[1] >= 1 && +m[1] <= 31 && +m[2] >= 1 && +m[2] <= 12) return `${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+    if (t) warn(`święta: „${t}” to nie data w formacie dzień.miesiąc (np. 1.12) – używam ${dom}`);
+    return dom;
+  };
+  dane.SWIETA = {
+    tryb: ["auto", "zawsze", "wylaczone"].includes(swieta.tryb) ? swieta.tryb : "auto",
+    od: mmdd(swieta.od, "12-01"), do: mmdd(swieta.do, "01-06"),
+    snieg: swieta.snieg !== false, mikolaj: swieta.mikolaj !== false,
+  };
+}
+
 fs.writeFileSync(path.join(OUT, "js/dane.js"),
   "/* Plik generowany przez build/build.mjs – nie edytuj, zmiany rób w panelu (content/, media/). */\n" +
   Object.entries(dane).map(([k, v]) => `window.${k} = ${JSON.stringify(v)};`).join("\n") +
@@ -426,6 +444,23 @@ const view = {
     wycena_html: inline(oferta.wycena_indywidualna?.tekst),
     faq: (oferta.faq || []).map(f => ({ ...f, odpowiedz_html: inline(f.odpowiedz) })),
   },
+  bony: (() => {
+    const pakiety = (oferta.pakiety || []).filter(p => p.id && p.nazwa).map(p => ({
+      ...p, cena_txt: zl(p.cena), szczegoly: `${p.minut} minut · ${p.zdjec} obrobionych zdjęć`,
+    }));
+    const od = Number(bony.kwotowy_od) || 0;
+    return {
+      ...bony,
+      pokazuj: bony.pokazuj !== false && (pakiety.length > 0 || bony.kwotowy !== false),
+      naglowek: String(bony.naglowek || "").trim() || "Podaruj wspomnienia",
+      pakiety,
+      kwotowy: bony.kwotowy !== false,
+      kwotowy_txt: od > 0 ? `od ${zl(od)}` : "",
+      waznosc_miesiecy: Math.min(60, Math.max(0, Math.round(Number(bony.waznosc_miesiecy) || 0))),
+      domyslny: pakiety.find(p => p.wyrozniony) || pakiety[0] || { nazwa: "Bon kwotowy", szczegoly: "do wykorzystania na dowolną sesję" },
+      komunikat_html: inline(bony.komunikat),
+    };
+  })(),
   galeria,
   teksty: {
     ...teksty,

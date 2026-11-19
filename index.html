@@ -47,7 +47,8 @@
     <a href="#o-mnie">O mnie</a>
     <a href="#portfolio">Portfolio</a>
     <a href="#oferta">Oferta</a>
-    <a href="#wydarzenia" data-events-link hidden>Wydarzenia</a>
+    {{#bony.pokazuj}}<a href="#bon">Bon podarunkowy</a>
+    {{/bony.pokazuj}}<a href="#wydarzenia" data-events-link hidden>Wydarzenia</a>
     <a href="#rezerwacja">Rezerwacja</a>
     <a href="#kontakt">Kontakt</a>
     <span class="nav__social social-icons" data-social></span>
@@ -67,7 +68,8 @@
     <p class="hero__lead">{{{strona.hero.opis_html}}}</p>
     <div class="hero__cta">
       <a href="#rezerwacja" class="btn btn--light">Zarezerwuj sesję</a>
-      <a href="#portfolio" class="btn btn--ghost">Zobacz portfolio</a>
+      {{#bony.pokazuj}}<a href="#bon" class="btn btn--ghost">Podaruj sesję</a>
+      {{/bony.pokazuj}}<a href="#portfolio" class="btn btn--ghost">Zobacz portfolio</a>
     </div>
   </div>
   <a href="#o-mnie" class="hero__scroll" aria-label="Przewiń w dół"></a>
@@ -158,6 +160,66 @@
     </div>{{/oferta.faq?}}
   </div>
 </section>
+
+<!-- ============ BON PODARUNKOWY (treść: content/bony.json; na razie tylko do oglądania, bez zamawiania) ============ -->
+{{#bony.pokazuj}}
+<section class="section bon" id="bon">
+  <div class="container">
+    <header class="section__head reveal">
+      <p class="eyebrow">Bon podarunkowy</p>
+      <h2>{{bony.naglowek}}</h2>
+      {{#bony.podtytul?}}<p class="section__sub">{{bony.podtytul}}</p>{{/bony.podtytul?}}
+      {{#bony.wstazka_swieta?}}<p class="bon__wstazka script">{{bony.wstazka_swieta}}</p>{{/bony.wstazka_swieta?}}
+    </header>
+
+    <div class="bon__grid">
+      <!-- grafika bonu – zmienia się na żywo, gdy ktoś wybiera pakiet albo wpisuje imię (js/bon.js) -->
+      <div class="bon__karta-wrap reveal">
+        <figure class="bon__karta" aria-label="Przykładowy bon podarunkowy">
+          <svg class="bon__sznurek" viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 150 L400 150" /><path d="M290 0 L290 260" />
+          </svg>
+          <svg class="bon__kokarda" viewBox="0 0 80 60" aria-hidden="true">
+            <path d="M40 30 C22 8 4 10 8 24 C11 34 28 33 40 30 Z M40 30 C58 8 76 10 72 24 C69 34 52 33 40 30 Z" />
+            <path d="M40 30 C34 40 28 50 22 58 M40 30 C45 41 50 49 58 57" />
+            <circle cx="40" cy="30" r="4.5" />
+          </svg>
+          <div class="bon__tresc">
+            <p class="bon__tytul script">bon podarunkowy</p>
+            <p class="bon__na">na sesję zdjęciową</p>
+            <p class="bon__pakiet" data-bon="pakiet">{{bony.domyslny.nazwa}}</p>
+            <p class="bon__szczegoly" data-bon="szczegoly">{{bony.domyslny.szczegoly}}</p>
+            <p class="bon__dla">dla <span class="script" data-bon="dla" data-domyslnie="{{bony.przyklad_dla}}">{{bony.przyklad_dla}}</span></p>
+            <p class="bon__dedykacja script" data-bon="dedykacja" data-domyslnie="{{bony.przyklad_dedykacja}}">{{bony.przyklad_dedykacja}}</p>
+            <p class="bon__stopka"><span>Ewelina Kucharczyk · fotografia</span><span>{{#bony.waznosc_miesiecy}}ważny do <b data-bon="waznosc" data-miesiecy="{{bony.waznosc_miesiecy}}"></b> · {{/bony.waznosc_miesiecy}}nr EK-0000-000</span></p>
+          </div>
+          <span class="bon__pieczec" aria-hidden="true">EK</span>
+        </figure>
+      </div>
+
+      <div class="form bon__wybor reveal" id="bon-wybor">
+        <fieldset class="bon__opcje">
+          <legend>Zobacz, jak może wyglądać Twój bon</legend>
+          {{#bony.pakiety}}
+          <label class="bon__opcja"><input type="radio" name="bon-rodzaj" value="{{id}}" data-nazwa="{{nazwa}}" data-szczegoly="{{szczegoly}}"{{#wyrozniony}} checked{{/wyrozniony}}>
+            <span><b>{{nazwa}}</b>{{minut}} min · {{zdjec}} zdjęć<br><i>{{cena_txt}}</i></span></label>
+          {{/bony.pakiety}}
+          {{#bony.kwotowy}}
+          <label class="bon__opcja"><input type="radio" name="bon-rodzaj" value="kwota" data-nazwa="Bon kwotowy" data-szczegoly="do wykorzystania na dowolną sesję">
+            <span><b>Bon kwotowy</b>na dowolną sesję lub dopłatę{{#bony.kwotowy_txt?}}<br><i>{{bony.kwotowy_txt}}</i>{{/bony.kwotowy_txt?}}</span></label>
+          {{/bony.kwotowy}}
+        </fieldset>
+        <div class="form__row">
+          <label>Imię osoby obdarowanej<input type="text" id="bon-dla" maxlength="30" placeholder="np. {{bony.przyklad_dla}}" autocomplete="off"></label>
+          <label>Dedykacja<input type="text" id="bon-dedykacja" maxlength="90" placeholder="{{bony.przyklad_dedykacja}}" autocomplete="off"></label>
+        </div>
+        {{#bony.komunikat_html?}}<p class="bon__komunikat">{{{bony.komunikat_html}}}</p>{{/bony.komunikat_html?}}
+        <a href="#newsletter" class="btn btn--outline">Zapisz się na newsletter</a>
+      </div>
+    </div>
+  </div>
+</section>
+{{/bony.pokazuj}}
 
 <!-- ============ WYDARZENIA (treść: content/wydarzenia/) ============ -->
 <section class="section section--linen events" id="wydarzenia" hidden>
@@ -322,5 +384,7 @@
 <script src="js/wspolne.js"></script>
 <script src="js/rezerwacje.js"></script>
 <script src="js/main.js"></script>
+<script src="js/bon.js"></script>
+<script src="js/swieta.js"></script>
 </body>
 </html>

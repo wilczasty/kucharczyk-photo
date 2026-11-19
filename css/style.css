@@ -506,3 +506,84 @@ h3 { font-size: 1.6rem; }
   .rez__pak span { font-size: .7rem; letter-spacing: 0; }
 }
 .ml-form-recaptcha .g-recaptcha { min-height: 78px; }   /* miejsce na reCAPTCHA, która wczytuje się dopiero przy użyciu formularza */
+
+/* ---------- tryb świąteczny: śnieg i Mikołaj w hero (js/swieta.js, panel „Święta”) ---------- */
+.swieta__canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.hero__content { z-index: 2; }
+.swieta__toggle {
+  position: absolute; left: 1.25rem; bottom: 1.6rem; z-index: 3;
+  background: none; border: 0; padding: .3rem .4rem; cursor: pointer;
+  font: 500 1.15rem var(--script); color: rgba(250,246,239,.75);
+}
+.swieta__toggle::before { content: "❄ "; }
+.swieta__toggle:hover { color: var(--paper); }
+
+/* ---------- bon podarunkowy (sekcja #bon, js/bon.js, panel „Bon podarunkowy”) ---------- */
+.bon { background: var(--forest); color: var(--paper); overflow: hidden; }
+.bon .eyebrow { color: var(--kraft); }
+.bon .section__sub { color: rgba(250,246,239,.75); }
+.bon__wstazka { display: none; margin-top: 1.2rem !important; color: var(--kraft); font-size: 1.5rem; rotate: -1.5deg; }
+.swieta .bon__wstazka { display: block; }
+.bon__grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+
+.bon__karta-wrap { min-width: 0; }
+.bon__karta {
+  position: relative; margin: 0; aspect-ratio: 400 / 260; container-type: inline-size;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(255,255,255,.25), transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(90,60,30,.18), transparent 60%),
+    #d6bf9d;
+  color: var(--bark); border-radius: 3px; rotate: -2deg;
+  box-shadow: 0 25px 50px -20px rgba(0,0,0,.6), inset 0 0 0 1px rgba(63,50,40,.12), inset 0 0 40px rgba(90,60,30,.18);
+}
+.bon__karta::before { /* ziarno papieru pakowego */
+  content: ""; position: absolute; inset: 0; opacity: .35; mix-blend-mode: multiply; border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.bon__sznurek { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bon__sznurek path { stroke: #8a6a45; stroke-width: 2.4; stroke-dasharray: 5 2; fill: none; vector-effect: non-scaling-stroke; }
+.bon__kokarda { position: absolute; left: 72.5%; top: 57.7%; width: 24%; translate: -50% -50%; overflow: visible; }
+.bon__kokarda path, .bon__kokarda circle { fill: none; stroke: #8a6a45; stroke-width: 2.6; stroke-dasharray: 5 2; stroke-linecap: round; }
+.bon__kokarda circle { fill: #8a6a45; }
+.bon__tresc { position: absolute; inset: 7% 32% 6% 7%; display: flex; flex-direction: column; }
+.bon__tresc p { margin: 0; line-height: 1.15; }
+.bon__tytul { font-size: 8cqi; color: var(--wood-dark); }
+.bon__na { font-size: 2.6cqi; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-top: .3em !important; }
+.bon__pakiet { font-family: var(--serif); font-size: 6.6cqi; margin-top: 4% !important; }
+.bon__szczegoly { font-size: 2.8cqi; color: var(--muted); margin-top: .4em !important; }
+.bon__dla { font-size: 3cqi; margin-top: 5% !important; color: var(--muted); }
+.bon__dla .script { font-size: 6.2cqi; color: var(--bark); margin-left: .2em; }
+.bon__dedykacja { font-size: 4.2cqi; color: var(--wood-dark); margin-top: .3em !important; overflow-wrap: anywhere; }
+.bon__stopka { margin-top: auto !important; display: flex; flex-direction: column; gap: .3em; font-size: 2.2cqi; letter-spacing: .08em; color: var(--muted); }
+.bon__stopka b { font-weight: 500; }
+.bon__pieczec {
+  position: absolute; right: 8%; top: 9%; width: 15cqi; aspect-ratio: 1; display: grid; place-items: center;
+  border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%;
+  background: radial-gradient(circle at 35% 30%, #b0503f, #7d2a20 70%);
+  box-shadow: 0 3px 6px rgba(0,0,0,.35), inset 0 0 0 3px rgba(0,0,0,.12), inset 0 0 0 7px rgba(255,255,255,.08);
+  font: 500 5cqi var(--serif); color: rgba(255,220,200,.75); letter-spacing: .05em; rotate: 12deg;
+}
+.bon__wybor { background: var(--paper); color: var(--bark); }
+.bon__komunikat { margin: 0; padding: .9rem 1rem; border: 1px dashed var(--wood); border-radius: var(--radius); background: var(--linen); font-size: .95rem; line-height: 1.55; }
+.bon__komunikat strong { font-weight: 500; color: var(--wood-dark); }
+.bon__opcje { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.bon__opcje legend { font-size: .75rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; padding: 0; }
+.bon__opcja { position: relative; cursor: pointer; }
+.bon__opcja input { position: absolute; opacity: 0; }
+.bon__opcja span {
+  display: block; height: 100%; padding: .75rem .9rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--linen); text-transform: none; letter-spacing: 0; font-size: .9rem; color: var(--muted); line-height: 1.35;
+  transition: border-color .2s, background .2s;
+}
+.bon__opcja b { display: block; font: 500 1.2rem var(--serif); color: var(--bark); }
+.bon__opcja i { font-style: normal; color: var(--wood); font-family: var(--serif); font-size: 1.15rem; }
+.bon__opcja input:checked + span { border-color: var(--wood); background: #fff; box-shadow: inset 0 0 0 1px var(--wood); }
+.bon__opcja input:focus-visible + span { outline: 2px solid var(--wood-dark); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .bon__grid { grid-template-columns: 1fr; }
+  .bon__karta-wrap { max-width: 520px; margin: 0 auto; width: 100%; }
+}
+@media (max-width: 520px) {
+  .bon__opcje { grid-template-columns: 1fr; }
+  
